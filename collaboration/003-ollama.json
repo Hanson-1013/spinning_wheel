@@ -1,0 +1,5 @@
+{
+  "task": "生成一个纯JavaScript ES模块，只输出代码不要Markdown。导出函数 sampleRipple(distance, age)，用于水滴涟漪高度。age<0或age>3返回0；波前以1.5单位每秒扩散；用高斯包络限制波前，正弦产生波峰波谷，随时间和距离衰减；振幅不超过0.04。不得import、访问文件、网络、全局对象或执行任何命令。代码不超过20行。",
+  "response": "export function sampleRipple(distance, age) {\n  if (age < 0 || age > 3) return 0;\n  const speed = 1.5;\n  const radius = speed * age;\n  const diff = distance - radius;\n  const sigma = 0.5;\n  const envelope = Math.exp(-diff * diff / (2 * sigma * sigma));\n  const wave = Math.sin(2 * Math.PI * diff / 0.3);\n  let amp = envelope * wave;\n  if (amp > 0.04) amp = 0.04;\n  if (amp < -0.04) amp = -0.04;\n  return amp;\n}",
+  "done_reason": "stop"
+}

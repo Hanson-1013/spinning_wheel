@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+*{box-sizing:border-box}body{margin:0;background:#080d10;color:#e0e7e6;font-family:'DM Sans',Arial,sans-serif;overflow:hidden}#app,#scene{position:fixed;inset:0}canvas{display:block;touch-action:none}#app:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 52% 48%,transparent 22%,#02070a77 100%)}header,footer,.title,aside{position:absolute;z-index:2}header{top:35px;left:42px;right:42px;display:flex;align-items:center;justify-content:space-between}.brand{color:inherit;text-decoration:none;letter-spacing:-2px;font-size:28px;font-weight:600}.brand span{display:block;font-size:9px;letter-spacing:2px;margin-top:5px;color:#899a9e}.edition,.eyebrow{font-size:9px;letter-spacing:2.5px;color:#819498}button{font:inherit;cursor:pointer;background:transparent;border:1px solid #76909440;color:#cbd9d7;padding:10px 13px;font-size:11px;border-radius:3px}button:hover{background:#9ddad815;border-color:#a6d3d6}.title{top:27%;left:6%}h1{font-weight:400;font-size:64px;letter-spacing:10px;margin:22px 0}h1 span{display:block;font-size:16px;letter-spacing:0;margin-top:12px;color:#b8cacb}.title p{font-size:11px;color:#8c9b9d;letter-spacing:2px}aside{right:38px;bottom:95px;width:224px;border:1px solid #8baba526;background:#0a15185e;backdrop-filter:blur(16px);padding:21px}.panel-title{font-size:12px;margin-bottom:24px;display:flex;justify-content:space-between}.panel-title span{font-size:8px;letter-spacing:2px;color:#a8d2bd}label{display:block;font-size:10px;color:#97a9ac;margin:19px 0}output{float:right;color:#d4e2e3;font-variant-numeric:tabular-nums}input{display:block;width:100%;height:2px;margin-top:14px;accent-color:#c2e3de;cursor:pointer}.buttons{display:flex;gap:8px}.buttons button{flex:1;padding:9px 3px;font-size:10px}aside p{font-size:9px;color:#6e888d;line-height:1.9;margin:18px 0 0}footer{left:42px;right:42px;bottom:28px;display:flex;justify-content:space-between;font-size:9px;letter-spacing:1.7px;color:#7e9498}footer b{font-weight:400}footer i{display:inline-block;width:5px;height:5px;border-radius:50%;background:#b1e8c6;margin-right:8px;box-shadow:0 0 8px #b1e8c6}em{margin:0 12px;font-style:normal}#error{position:absolute;z-index:5;left:10%;top:40%;background:#15252b;padding:30px;max-width:80%;line-height:1.8}button:focus-visible,input:focus-visible{outline:2px solid #c2e3de;outline-offset:6px}[hidden]{display:none!important}@media(max-width:700px){header{top:24px;left:24px;right:24px}.edition{display:none}.title{top:15%;left:24px}h1{font-size:42px;margin-top:14px}.eyebrow{font-size:8px}.title p{font-size:10px}aside{right:20px;bottom:70px;width:185px;padding:16px;background:#081217b0}footer{left:24px;right:24px;bottom:23px;font-size:8px;letter-spacing:0}.hint{display:none}.brand{font-size:23px}}
+
+.model-tools{position:absolute;z-index:3;bottom:77px;left:50%;transform:translateX(-50%);width:min(460px,calc(100% - 40px));padding:12px;background:#0a1518c9;border:1px solid #8baba526;backdrop-filter:blur(12px)}.model-tools p{text-align:center;color:#9eb6b8;font-size:10px;margin:10px 0 0}.model-tools .buttons button{white-space:nowrap}.title{pointer-events:none}aside{bottom:180px}
+
+.ritual-flash{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 48%,#fffef3 0%,#fff8dd 38%,#ffe5a1 80%,#ffd882 100%);will-change:opacity}
+
+.variant-buttons{display:flex;gap:6px;margin-bottom:10px}.variant-buttons button{flex:1;padding:9px 3px;font-size:10px;white-space:nowrap}.variant-buttons button[aria-pressed="true"]{border-color:#c2a46a;background:#bb955525;color:#ffe3ac}
+
+/* Reserve a distinct mobile stage so controls never cover the wheel. */
+@media(max-width:700px){
+ #app{height:100dvh;max-height:100dvh}
+ #scene{top:calc(env(safe-area-inset-top,0px) + 142px);bottom:calc(env(safe-area-inset-bottom,0px) + 164px)}
+ header{top:calc(env(safe-area-inset-top,0px) + 14px);left:18px;right:18px}
+ .brand{font-size:22px}.brand span{font-size:8px;margin-top:2px}
+ header>button{min-height:40px;padding:8px 11px}
+ .title{top:calc(env(safe-area-inset-top,0px) + 72px);left:18px}
+ .eyebrow{font-size:7px;letter-spacing:1.5px}
+ h1{font-size:30px;margin:9px 0 0;letter-spacing:5px;display:flex;align-items:baseline;gap:12px}
+ h1 span{font-size:11px;margin:0;letter-spacing:0}.title p{display:none}
+ .model-tools{bottom:calc(env(safe-area-inset-bottom,0px) + 35px);width:calc(100% - 24px);padding:9px}
+ .variant-buttons{gap:5px;margin-bottom:7px}
+ .variant-buttons button,.model-tools .buttons button{min-height:40px;font-size:10px;padding:8px 3px}
+ .model-tools p{font-size:9px;margin:7px 0 0;line-height:1.3}
+ footer{left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);font-size:7px}
+ aside{bottom:calc(env(safe-area-inset-bottom,0px) + 175px);right:12px}
+}
+@media(max-width:700px) and (max-height:550px){
+ #scene{top:65px;bottom:125px}.title{display:none}
+ .model-tools{bottom:calc(env(safe-area-inset-bottom,0px) + 24px);padding:6px}
+ .model-tools p{display:none}.variant-buttons button,.model-tools .buttons button{min-height:35px}
+}
+
+#sigil-dismiss{display:block;margin:8px auto 0;color:#e8c68f;border-color:#bda16d66;font-size:10px;padding:7px 14px}
+
+/* Keep the front-water sigil unobstructed on desktop and landscape tablets. */
+@media(min-width:701px){
+ .model-tools{left:32px;bottom:75px;transform:none;width:300px;padding:12px}
+ .variant-buttons{flex-wrap:wrap}
+ .variant-buttons button{min-height:38px}
+ .model-tools .buttons button{min-height:38px}
+}
+@media(min-width:701px) and (max-height:650px){
+ .model-tools{left:20px;bottom:45px;width:270px;padding:8px}
+ .title{top:17%;left:24px}h1{font-size:42px;margin:14px 0}
+}
+
+#wood-style{width:100%;padding:10px;color:#e3d4bb;background:#152126;border:1px solid #78908b66;border-radius:3px;margin:0 0 18px;font:inherit;font-size:12px}label[for="wood-style"]{margin:12px 0 8px}
+
+/* Minimal replay control, centered above the safe-area edge. */
+.model-tools{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 54px);transform:translateX(-50%);width:auto;padding:0;border:0;background:none;backdrop-filter:none}
+#model-reset{min-width:144px;min-height:44px;padding:12px 28px;border:0;background:transparent;color:#f2ffff;backdrop-filter:none;box-shadow:none;text-shadow:0 0 6px #ffffffaa,0 0 18px #def7ff99;letter-spacing:3px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .65s ease}
+#model-reset.is-visible{opacity:1;pointer-events:auto}
+#model-reset:hover{background:transparent;border:0}
+@media(prefers-reduced-motion:reduce){#model-reset{transition:none}}
+@media(max-width:700px){#scene{bottom:calc(env(safe-area-inset-bottom,0px) + 100px)}.model-tools{bottom:calc(env(safe-area-inset-bottom,0px) + 36px)}}
+
+/* The replay glow exists only while the completed ritual offers another turn. */
+
+
+/* Raise the replay text by one character height. */
+#model-reset{transform:translateY(-1em)}
+
+/* Mobile text overlays the continuous scene without a dark reserved strip. */
+@media(max-width:700px){
+ #scene{inset:0}
+ #app:after{background:none}
+ header,footer,.title{background:transparent;backdrop-filter:none}
+ header,footer{pointer-events:none}
+ header a{pointer-events:auto}
+}
+
+/* Preserve the original mobile composition while extending its view behind text. */
+.mobile-camera-frame{position:fixed;visibility:hidden;pointer-events:none;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 142px);bottom:calc(env(safe-area-inset-bottom,0px) + 100px)}
+@media(max-width:700px) and (max-height:550px){.mobile-camera-frame{top:65px}}
+
+/* Mobile replay: three more character heights above its current position. */
+@media(max-width:700px){#model-reset{transform:translateY(-4em)}}
