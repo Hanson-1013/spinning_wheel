@@ -115,8 +115,26 @@ export function createSpinningWheel(scene, camera, canvas) {
   const wheelGlow=new THREE.PointLight(0xff751b,0,3.6,2);
   wheelGlow.position.set(.53,1.32,.3);root.add(wheelGlow);
   let gesture=null,angle=0,endFade=1,settleTime=0,settleSpeed=1,resetMotion=null,state=createRitualState();
-  canvas.style.cursor='grab';
+  canvas.style.cursor='default';
   const projectedCenter=new THREE.Vector3();
+  const hoverRaycaster=new THREE.Raycaster(),hoverPointer=new THREE.Vector2();
+  const localRay=new THREE.Ray(),inverseWheel=new THREE.Matrix4(),hitPoint=new THREE.Vector3();
+  const wheelPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+  let hoverPosition=null;
+  function refreshCursor(){
+    if(gesture){canvas.style.cursor='grabbing';return;}
+    let overWheel=false;
+    if(hoverPosition&&!state.complete&&!state.finishing&&!resetMotion){
+      const rect=canvas.getBoundingClientRect();
+      hoverPointer.set((hoverPosition.x-rect.left)/rect.width*2-1,1-(hoverPosition.y-rect.top)/rect.height*2);
+      camera.updateMatrixWorld(true);wheel.updateWorldMatrix(true,false);
+      hoverRaycaster.setFromCamera(hoverPointer,camera);
+      localRay.copy(hoverRaycaster.ray).applyMatrix4(inverseWheel.copy(wheel.matrixWorld).invert());
+      if(localRay.intersectPlane(wheelPlane,hitPoint))overWheel=hitPoint.x*hitPoint.x+hitPoint.y*hitPoint.y<=1.2*1.2;
+    }
+    canvas.style.cursor=overWheel?'grab':'default';
+  }
+  canvas.addEventListener('pointerleave',()=>{hoverPosition=null;refreshCursor();});
   function angleAt(e){
     root.updateMatrixWorld(true);camera.updateMatrixWorld(true);
     wheel.getWorldPosition(projectedCenter);projectedCenter.project(camera);
@@ -129,7 +147,7 @@ export function createSpinningWheel(scene, camera, canvas) {
     const id=gesture.id;gesture=null;
     if(e)releaseRitual(state);
     if(canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);
-    canvas.style.cursor='grab';
+    refreshCursor();
   }
   canvas.addEventListener('pointerdown',e=>{
     if(e.button!==0||gesture||state.complete||state.finishing||resetMotion)return;
@@ -138,6 +156,7 @@ export function createSpinningWheel(scene, camera, canvas) {
     gesture={id:e.pointerId,angle:angleAt(e)};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';
   });
   canvas.addEventListener('pointermove',e=>{
+    hoverPosition=e.pointerType==='touch'?null:{x:e.clientX,y:e.clientY};refreshCursor();
     if(!gesture||e.pointerId!==gesture.id)return;
     e.preventDefault();e.stopImmediatePropagation();
     const next=angleAt(e);
@@ -151,6 +170,7 @@ export function createSpinningWheel(scene, camera, canvas) {
   function beginReset(){end();resetMotion={angle:Math.atan2(Math.sin(angle),Math.cos(angle)),energy:state.progress*state.progress*endFade,time:0,blend:0};state=createRitualState();settleTime=0;endFade=1;}
   function reset(){end();resetMotion=null;state=createRitualState();angle=0;endFade=1;settleTime=0;pose();}
   function update(dt,elapsed=dt){
+    refreshCursor();
     if(resetMotion){
       resetMotion.time+=elapsed;resetMotion.blend=THREE.MathUtils.smoothstep(resetMotion.time,0,2.4);
       angle=resetMotion.angle*(1-resetMotion.blend);pose();

@@ -76,3 +76,7 @@
 
 /* Mobile replay: three more character heights above its current position. */
 @media(max-width:700px){#model-reset{transform:translateY(-4em)}}
+
+/* Center the footer credit independently of its left and right labels. */
+footer .footer-brand{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap}
+footer .hint{margin-left:auto}
