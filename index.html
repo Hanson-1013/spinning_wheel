@@ -4,8 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>纺车 · Water Atelier</title>
+<meta name="theme-color" content="#080d10">
+<style>
+html,body{margin:0;background:#080d10}
+#loading-screen{position:fixed;inset:0;z-index:100;background:#080d10;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#dbc898;font:12px Arial,sans-serif;letter-spacing:3px;transition:opacity .65s ease;touch-action:none}
+#loading-screen.is-ready{opacity:0;pointer-events:none}
+.loading-wheel{width:90px;height:90px;overflow:visible;color:#b89a69;filter:drop-shadow(0 0 9px #bc945624);animation:loading-turn 9s linear infinite;transform-origin:center}
+.loading-wheel .rim{fill:none;stroke:currentColor;stroke-width:2.6}
+.loading-wheel .rim-groove{fill:none;stroke:#e0c28b;stroke-opacity:.45;stroke-width:.65}
+.loading-wheel .spoke{fill:none;stroke:currentColor;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.loading-wheel .hub{fill:#59442e;stroke:#c9a76d;stroke-width:1}
+.loading-wheel .axle{fill:#d0b17b}
+#loading-label{margin:24px 20px 0;text-align:center;line-height:1.8}
+#loading-screen.is-error .loading-wheel{animation:none;opacity:.5}
+@keyframes loading-turn{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.loading-wheel{animation:none}#loading-screen{transition:none}}
+</style>
 </head>
 <body>
+<div id="loading-screen" role="status" aria-live="polite"><svg class="loading-wheel" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><g transform="translate(50 50)"><circle class="rim" r="42"/><circle class="rim-groove" r="44.5"/><circle class="rim-groove" r="40"/><path class="spoke" transform="rotate(0)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(30)" d="M0 -8 L0 -17 M0 -26 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(60)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(90)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(120)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(150)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(180)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(210)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(240)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(270)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><path class="spoke" transform="rotate(300)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -30"/><path class="spoke" transform="rotate(330)" d="M0 -8 L0 -17 Q-2 -19 0 -21 L0 -28 Q-1.8 -30 0 -32 L0 -40"/><circle class="hub" r="7.5"/><circle class="rim-groove" r="5.3"/><circle class="axle" r="2.7"/></g></svg><p id="loading-label">正在织起光与水…</p></div>
+<noscript><style>#loading-label{display:none}</style><p style="position:fixed;z-index:101;color:#dbc898">请启用 JavaScript 以体验此场景。</p></noscript>
 <main id="app">
 <div id="scene">
 </div>
@@ -40,9 +58,11 @@
 <p>围绕轮心画弧，唤起四周的光<br>越接近终点，阻力越明显</p>
 </aside>
 <footer>
-<span>
-<i>
-</i> <b id="status">正在构建空间</b>
+<span class="status-tools">
+<span class="status-copy"><i></i> <b id="status">正在构建空间</b></span>
+<button id="toggle-ui" type="button" aria-label="隐藏界面" aria-pressed="false" title="隐藏界面">
+<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="m4 3 16 18"/></svg>
+</button>
 </span>
 <span class="footer-brand">reverse <em>·</em> 1999</span>
 <span class="hint">DRAG TO EXPLORE ⤴</span>

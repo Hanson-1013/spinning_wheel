@@ -77,7 +77,9 @@ export function createGatheringLight(scene,renderer,bloom,options={}){
         sigilPick.updateMatrixWorld(true);
         if(clickRay.intersectObject(sigilPick,false).length){clickTime=-100;return;}
       }
-      clickOrigin.copy(clickRay.ray.origin);clickDirection.copy(clickRay.ray.direction);clickTime=currentTime;
+      scene.updateWorldMatrix(true,false);
+      clickOrigin.copy(clickRay.ray.origin);scene.worldToLocal(clickOrigin);
+      clickDirection.copy(clickRay.ray.direction).transformDirection(scene.matrixWorld.clone().invert());clickTime=currentTime;
     },true);
     canvas.addEventListener('pointercancel',()=>{press=null;},true);
   }

@@ -4,13 +4,14 @@ import { sampleRipple } from './ripple.js';
 import { createRainState, respawnRain, stepRain } from './rain-state.js';
 
 export function createWater(scene) {
+  const poolGroup=new THREE.Group(),rainGroup=new THREE.Group();poolGroup.name='水池';rainGroup.name='雨滴';scene.add(poolGroup,rainGroup);
   const level = -2.035;
   const mirror = new Reflector(new THREE.PlaneGeometry(4.9, 3.5), {
     color: 0x70838c, textureWidth: 2048, textureHeight: 1536, clipBias: 0.004, multisample: 2,
   });
   mirror.rotation.x = -Math.PI / 2;
   mirror.position.set(0, level, 0);
-  scene.add(mirror);
+  poolGroup.add(mirror);
   // Distort the reflected image with a continuous, subtle water flow.
   const material = mirror.material;
   material.uniforms.waterTime = { value: 0 };
@@ -41,12 +42,12 @@ export function createWater(scene) {
     clearcoat: 1, clearcoatRoughness: 0.12, depthWrite: false, side: THREE.DoubleSide,
   }));
   surface.position.y = level + 0.008;
-  scene.add(surface);
+  poolGroup.add(surface);
   const drops = new THREE.InstancedMesh(new THREE.SphereGeometry(0.014, 7, 6),
     new THREE.MeshPhysicalMaterial({ color: 0xc6edff, emissive: 0x507c99, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.08 }), 85);
   drops.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   drops.frustumCulled = false;
-  scene.add(drops);
+  rainGroup.add(drops);
   const states = Array.from({length: 85}, () => createRainState());
   const ripples = [];
   const ringGeometry = new THREE.RingGeometry(0.986, 1, 192);
@@ -56,7 +57,7 @@ export function createWater(scene) {
       color: 0x9edcea, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
     }));
-    ring.visible = false; scene.add(ring); return ring;
+    ring.visible = false; poolGroup.add(ring); return ring;
   });
   let ringIndex = 0;
   const matrix = new THREE.Matrix4();
@@ -112,5 +113,5 @@ export function createWater(scene) {
     surfaceGeometry.computeVertexNormals();
   }
   reset();
-  return { update, reset };
+  return { update, reset, poolGroup, rainGroup };
 }
