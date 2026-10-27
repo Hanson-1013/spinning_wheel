@@ -4,7 +4,20 @@ export function addLibraryInstruments(root,{walnut,trim,brass,iron}){
  const ivory=new THREE.MeshStandardMaterial({color:0xc4bda2,roughness:.6});
  const ebony=new THREE.MeshStandardMaterial({color:0x191c19,roughness:.38});
  const felt=new THREE.MeshStandardMaterial({color:0x472f25,roughness:1});
- const pianoWood=new THREE.MeshPhysicalMaterial({color:0x30261e,roughness:.48,clearcoat:.16,clearcoatRoughness:.45});
+ const pianoWood=new THREE.MeshPhysicalMaterial({color:0x30261e,roughness:.79,clearcoat:.035,clearcoatRoughness:.8});
+ // Fine longitudinal grain with low-contrast color and a matte microrelief.
+ const grainData=new Uint8Array(128*256*4);
+ for(let y=0;y<256;y++)for(let x=0;x<128;x++){
+  const warp=x+1.8*Math.sin(y*.027)+.65*Math.sin(y*.071+x*.08);
+  const fiber=Math.sin(warp*2.5+y*.018)*.45+Math.sin(warp*6.8)*.2;
+  const noise=Math.sin(x*127.1+y*311.7)*43758.5453;
+  const value=Math.round(191+fiber*22+(noise-Math.floor(noise)-.5)*12),i=(y*128+x)*4;
+  grainData[i]=value;grainData[i+1]=value;grainData[i+2]=value;grainData[i+3]=255;
+ }
+ const grain=new THREE.DataTexture(grainData,128,256);grain.wrapS=grain.wrapT=THREE.RepeatWrapping;grain.repeat.set(2,1);grain.needsUpdate=true;
+ pianoWood.map=grain;pianoWood.bumpMap=grain;pianoWood.bumpScale=.0012;pianoWood.roughnessMap=grain;
+ const pianoWalnut=walnut.clone(),pianoTrim=trim.clone();
+ for(const m of [pianoWalnut,pianoTrim]){m.map=grain;m.bumpMap=grain;m.bumpScale=.0012;m.roughness=.82;m.metalness=0;}
  const boxGeometry=new THREE.BoxGeometry(1,1,1);
  function box(parent,w,h,d,x,y,z,material){const o=new THREE.Mesh(boxGeometry,material);o.scale.set(w,h,d);o.position.set(x,y,z);parent.add(o);return o;}
  function cylinder(parent,r1,r2,h,x,y,z,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,24),material);o.position.set(x,y,z);parent.add(o);return o;}
@@ -50,16 +63,17 @@ export function addLibraryInstruments(root,{walnut,trim,brass,iron}){
  }
  const stool=new THREE.Group();stool.position.set(0,.43,1.05);piano.add(stool);
  box(stool,.85,.13,.42,0,0,0,ebony);for(const x of [-.34,.34])for(const z of [-.14,.14])box(stool,.045,.4,.045,x,-.24,z,trim);
- piano.traverse(part=>{if(!part.isMesh)return;part.geometry=part.geometry.clone();part.updateWorldMatrix(true,false);const intoPiano=new THREE.Matrix4().copy(piano.matrixWorld).invert().multiply(part.matrixWorld),back=intoPiano.clone().invert(),p=part.geometry.attributes.position,v=new THREE.Vector3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(intoPiano);if(v.y>1.25)v.y=1.25+(v.y-1.25)*.45;v.applyMatrix4(back);p.setXYZ(i,v.x,v.y,v.z);}part.geometry.computeVertexNormals();});
+ piano.traverse(part=>{if(!part.isMesh)return;if(part.material===walnut)part.material=pianoWalnut;else if(part.material===trim)part.material=pianoTrim;part.geometry=part.geometry.clone();part.updateWorldMatrix(true,false);const intoPiano=new THREE.Matrix4().copy(piano.matrixWorld).invert().multiply(part.matrixWorld),back=intoPiano.clone().invert(),p=part.geometry.attributes.position,v=new THREE.Vector3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(intoPiano);if(v.y>1.25)v.y=1.25+(v.y-1.25)*.45;v.applyMatrix4(back);p.setXYZ(i,v.x,v.y,v.z);}part.geometry.computeVertexNormals();});
  // Pomegranate cloth rests on the lowered cabinet, then folds over its left edge.
  const drapeGeometry=new THREE.PlaneGeometry(1,1,36,52),drapePositions=drapeGeometry.attributes.position;
  for(let i=0;i<drapePositions.count;i++){
   const u=drapePositions.getX(i),t=drapePositions.getY(i)+.5;
-  const length=t*1.65,edge=.48;
-  let x=-.84-Math.min(length,edge),y=1.807;
-  if(length>edge){const fall=length-edge;x=-1.335-.035*Math.sin(fall*2.7);y-=fall;}
-  const fold=Math.sin(u*32+t*3)*.018+Math.sin(u*17-t*5)*.012;
-  if(length>edge)x+=fold;else y+=fold;
+  const length=t*1.85,edge=.58,radius=.06;
+  let x,y;
+  const fold=Math.sin(u*32+t*3)*.012+Math.sin(u*17-t*5)*.008;
+  if(length<=edge){x=-.84-length;y=1.82+fold;}
+  else if(length<=edge+radius*Math.PI/2){const angle=(length-edge)/radius;x=-1.42-radius*Math.sin(angle);y=1.82-radius*(1-Math.cos(angle))+fold*.25;}
+  else{const fall=length-edge-radius*Math.PI/2;x=-1.48+fold-.015*Math.sin(fall*2.7);y=1.76-fall;}
   drapePositions.setXYZ(i,x,y,-.08+u*.63+.018*Math.sin(t*8+u*5));
  }
  drapeGeometry.computeVertexNormals();

@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import {addLibraryCeiling} from './library-ceiling.js';
+import {createLibraryDesk} from './library-furniture.js';
 import {addWindowMist} from './library-window-mist.js';
 import {setupLibraryMotion} from './library-motion.js';
 import {createIndoorAreca} from './tropical-plants.js';
@@ -49,37 +51,58 @@ export function createBotanicalLibrary(){
  // Four glazed bays span 13m, separated by exactly three coarse interior mullions.
  for(let bay=0;bay<4;bay++){
   const x=(bay-1.5)*3.25;
-  box(3.19,7,.025,x,1.65,-6.3,glass);
-  for(const col of [-1,1])box(.055,7,.08,x+col*.81,1.65,-6.05,iron);
-  for(const y of [-.9,2.85,4.85])box(3.25,.065,.08,x,y,-6.03,iron);
+  box(3.19,6.68,.025,x,1.49,-6.3,glass);
+  for(const col of [-1,1])box(.055,6.68,.08,x+col*.81,1.49,-6.05,iron);
+  for(const y of [-.3975,3.215,4.77])box(3.25,.065,.08,x,y,-6.03,iron);
  }
  for(const x of [-3.25,0,3.25]){
   const pillar=new THREE.Group();pillar.name='正面玻璃粗竖柱';root.add(pillar);
-  box(.23,7.3,.32,x,1.65,-6.15,trim,pillar);
-  box(.05,6.8,.012,x,1.65,-5.983,walnut,pillar);box(.021,6.72,.014,x,1.65,-5.974,brass,pillar);
-  for(const y of [-1.76,5.06])box(.055,.035,.016,x,y,-5.973,brass,pillar);
+  box(.23,6.83,.32,x,1.415,-6.15,trim,pillar);
+  box(.05,6.5,.012,x,1.5,-5.983,walnut,pillar);box(.021,6.42,.014,x,1.5,-5.974,brass,pillar);
+  for(const y of [-1.76,4.73])box(.055,.035,.016,x,y,-5.973,brass,pillar);
  }
  box(13.2,.16,.17,0,1.6,-5.94,iron);
+ box(13.2,.12,.2,0,4.77,-6.08,trim);
  addChamferedArchitecture(root,{wood:walnut,trim,brass,iron,glass,sky});
  // Shelves on both sides, with individually varied book spines batched into one draw.
  const bookMaterial=material(0xffffff),bookTransforms=[],bookColors=[];
+ const cabinetWood=walnut.clone();cabinetWood.color.setHex(0x173d30);cabinetWood.roughness=.94;cabinetWood.metalness=0;
+ const cabinetTrim=trim.clone();cabinetTrim.color.setHex(0x24523f);cabinetTrim.roughness=.9;cabinetTrim.metalness=0;
+ const cabinetGold=new THREE.MeshStandardMaterial({color:0xc3a052,metalness:.78,roughness:.36});
  const palette=[0x55462d,0x343e32,0x6d5038,0x3d3430,0x777057,0x524536,0x3b4944];
  for(const side of [-1,1])for(let bay=0;bay<3;bay++){
-  const unit=new THREE.Group();unit.name='侧面落地窗前书柜';unit.position.set(side*6.9,-2.35,-1+bay*2.48);unit.rotation.y=-side*Math.PI/2;root.add(unit);
-  box(2.3,4.7,.28,0,2.35,-.35,walnut,unit);
-  for(const x of [-1.15,1.15])box(.15,4.9,.8,x,2.4,0,trim,unit);
-  box(2.55,.19,.95,0,4.9,0,trim,unit);
-  box(2.5,.15,.95,0,.08,0,walnut,unit);
-  for(const y of [4.72,4.81])box(2.47,.045,.9,0,y,.02,trim,unit);
-  for(const x of [-1.08,1.08]){box(.055,4.45,.04,x,2.5,.43,brass,unit);}
-  // Recessed lower cupboard doors, with raised panel molding and brass handles.
-  box(2.28,.65,.7,0,.43,0,walnut,unit);
-  for(const x of [-.57,.57]){
-   box(1.08,.56,.06,x,.43,.39,trim,unit);box(.9,.4,.025,x,.43,.43,walnut,unit);
-   box(.035,.11,.035,x+(x<0?.37:-.37),.48,.46,brass,unit);
+  const unit=new THREE.Group();unit.name='侧面落地窗前书柜';unit.userData.shelfLevels=4;unit.position.set(side*6.9,-2.35,-1+bay*2.48);unit.rotation.y=-side*Math.PI/2;root.add(unit);
+  box(2.3,3.4,.28,0,1.7,-.35,cabinetWood,unit);
+  for(const x of [-1.15,1.15])box(.15,3.6,.8,x,1.75,0,cabinetTrim,unit);
+  box(2.55,.19,.95,0,3.6,0,cabinetTrim,unit);
+  box(2.5,.15,.95,0,.08,0,cabinetWood,unit);
+  for(const y of [3.42,3.51])box(2.47,.045,.9,0,y,.02,cabinetTrim,unit);
+  for(const x of [-1.08,1.08]){box(.055,3.15,.04,x,1.85,.43,cabinetGold,unit);}
+  // Heavy stepped cornice and shallow bowed moldings echo the reference crown.
+  const crown=new THREE.Group();crown.name='书柜顶部 · 叠层挑檐与弧形饰线';unit.add(crown);
+  box(2.39,.32,.15,0,3.31,.4,cabinetWood,crown);
+  for(const [width,y,depth]of [[2.48,3.47,.94],[2.57,3.57,1.0],[2.65,3.68,1.04]])box(width,.065,depth,0,y,0,cabinetTrim,crown);
+  for(const [width,y,depth]of [[2.48,3.47,.94],[2.57,3.57,1.0],[2.65,3.68,1.04]])box(width,.012,.012,0,y-.025,depth/2+.005,cabinetGold,crown);
+  for(const side of [-1,1]){
+   box(.22,.14,1.06,side*1.19,3.69,0,cabinetTrim,crown);
+   const bracket=new THREE.Mesh(new THREE.CylinderGeometry(.055,.085,.18,12),cabinetWood);bracket.position.set(side*1.11,3.47,.43);crown.add(bracket);
   }
-  for(let row=0;row<6;row++){
-   const y=.82+row*.65;box(2.35,.095,.85,0,y,0,trim,unit);
+  for(let line=0;line<3;line++){
+   const points=[];for(let i=0;i<=40;i++){const t=i/40,x=(t-.5)*2.18;points.push(new THREE.Vector3(x,3.19+line*.071+.055*Math.sin(Math.PI*t),.485));}
+   const molding=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),40,.012,6,false),cabinetGold);crown.add(molding);
+  }
+  box(.56,.14,.035,0,3.31,.5,cabinetWood,crown);
+  for(const y of [3.255,3.365])box(.51,.012,.015,0,y,.525,cabinetGold,crown);
+  // Recessed lower cupboard doors, with raised panel molding and brass handles.
+  box(2.28,.65,.7,0,.43,0,cabinetWood,unit);
+  for(const x of [-.57,.57]){
+   box(1.08,.56,.06,x,.43,.39,cabinetTrim,unit);box(.9,.4,.025,x,.43,.43,cabinetWood,unit);
+   for(const y of [.215,.645])box(.94,.008,.008,x,y,.448,cabinetGold,unit);
+   for(const edge of [-1,1])box(.008,.43,.008,x+edge*.47,.43,.448,cabinetGold,unit);
+   box(.035,.11,.035,x+(x<0?.37:-.37),.48,.46,cabinetGold,unit);
+  }
+  for(let row=0;row<4;row++){
+   const y=.82+row*.65;box(2.35,.095,.85,0,y,0,cabinetTrim,unit);
    let x=-1.02;
    while(x<1){const w=.07+random()*.09,h=.36+random()*.28;const transform=new THREE.Object3D();transform.position.set(x+w/2,y+h/2+.05,.16+random()*.06);transform.scale.set(w,h,.34);transform.rotation.z=(random()-.5)*.12;transform.updateMatrix();unit.updateMatrixWorld(true);bookTransforms.push(new THREE.Matrix4().multiplyMatrices(unit.matrixWorld,transform.matrix));bookColors.push(palette[Math.floor(random()*palette.length)]);x+=w+.025;}
   }
@@ -107,8 +130,7 @@ export function createBotanicalLibrary(){
  root.add(createHangingGarden());
  const rearFurnitureStart=new Set(root.children);
  // A low antique desk, drawers, chair, and open frames sit behind the water stage.
- box(3.2,.14,.95,0,-1.38,-3.6,trim);
- for(const side of [-1,1]){box(.7,.85,.8,side*1.05,-1.87,-3.65);for(let i=0;i<3;i++){box(.63,.22,.025,side*1.05,-1.58-i*.25,-3.23,trim);box(.12,.025,.035,side*1.05,-1.58-i*.25,-3.19,brass);}}
+ const desk=createLibraryDesk({walnut,trim,brass});desk.position.set(0,-2.35,-3.6);root.add(desk);
  box(.7,.12,.7,.25,-1.8,-4.65,trim);box(.75,1,.1,.25,-1.25,-4.95);for(const x of [-.02,.52])for(const z of [-4.4,-4.9])box(.055,.6,.055,x,-2.1,z);
  for(const object of root.children)if(!rearFurnitureStart.has(object))object.position.x+=1.6;
  function frame(x,y,z,w,h,angle=0){const group=createLibraryFrame(w,h,trim,brass);if(y>0){group.userData.hangingFrame=true;group.userData.frameHeight=h;}group.position.set(x,y,z);group.rotation.z=angle;root.add(group);
@@ -117,17 +139,25 @@ export function createBotanicalLibrary(){
   return group;}
 
  frame(-3.1,.85,-5.8,1.1,1.6,.05);frame(3.4,.75,-5.8,.95,1.55,-.03);frame(-1.1,-1.55,-3.4,.7,1.1,-.15);frame(4.35,-1.4,-4.1,.9,1.4,.1);
- for(const x of [-4.4,-2.7,2.7,4.4]){
-  cylinder(.012,.012,1.5,x,4.1,-3.3,iron);
-  cylinder(.05,.3,.16,x,3.3,-3.3,iron);
-  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.055,8,6),new THREE.MeshBasicMaterial({color:0xffdaa0}));bulb.position.set(x,3.2,-3.3);root.add(bulb);
+ for(const x of [-5.8,5.8])for(const z of [-4.3,-1.9,.5]){
+  const pendant=new THREE.Group();pendant.name='纵向排列吊灯';pendant.position.set(x,0,z);root.add(pendant);
+  cylinder(.012,.012,3.87,0,3.415,0,iron,pendant);
+  cylinder(.05,.3,.16,0,1.4,0,iron,pendant);
+  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.055,8,6),new THREE.MeshBasicMaterial({color:0xffdaa0}));bulb.position.set(0,1.3,0);pendant.add(bulb);
  }
  const daylight=new THREE.HemisphereLight(0xd9e9e5,0x514e3e,1.1);root.add(daylight);
  const sun=new THREE.SpotLight(0xffdc98,110,32,.65,.8,1.2);sun.position.set(4.5,9.5,-11);sun.target.position.set(-1.8,-2,2);root.add(sun,sun.target);
  addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,stone,random,books,leafMaterial,sun});
+ for(const m of [cabinetWood,cabinetTrim]){m.map=walnut.map;m.bumpMap=walnut.bumpMap;m.bumpScale=.006;m.needsUpdate=true;}
  addLibraryGarden(root,{random,leafGeometries:monsteraGeometries});
+ addLibraryCeiling(root);
  addWindowMist(root);
  root.userData.motion=setupLibraryMotion(root);
+ // Retain geometry bounds for placement verification before static mesh batching.
+ root.updateMatrixWorld(true);
+ const lowShelves=root.children.filter(o=>o.name==='右侧矮书架 · 牛皮卷轴与书本');
+ const obstacles=root.children.filter(o=>o.name==='侧面落地窗前书柜'||o.name==='室内小型散尾葵 · 浓密羽状叶'||(o.position.x>0&&o.name.startsWith('现代简约花盆')));
+ root.userData.shelfPlacement=lowShelves.map(shelf=>{const bounds=new THREE.Box3().setFromObject(shelf);return {position:shelf.position.toArray(),height:bounds.max.y-bounds.min.y,overlaps:obstacles.filter(o=>bounds.intersectsBox(new THREE.Box3().setFromObject(o))).map(o=>o.name)};});
  // The set is static: batch by shared material to keep reflection rendering affordable.
  root.updateMatrixWorld(true);const batches=new Map();
  root.traverse(object=>{

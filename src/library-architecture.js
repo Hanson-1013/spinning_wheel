@@ -55,12 +55,12 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
    for(const y of [-2.19,5.98]){box(pillar,1.12,.18,.56,0,y,0,trim);box(pillar,1.02,.025,.51,0,y+.11,0,brass);}
   }
   const windows=new THREE.Group();windows.name=side===1?'右侧落地玻璃':'左侧落地玻璃';windows.position.set(side*(6.5+diagonalRun),0,(9.5+sideStart)/2);windows.rotation.y=-side*Math.PI/2;architecture.add(windows);
-  box(windows,sideLength,.55,.26,0,-2.12,0,wood);box(windows,sideLength,.34,.38,0,5.98,0,trim);
-  box(windows,sideLength,7.62,.025,0,1.94,0,glass);
+  box(windows,sideLength,.55,.26,0,-2.12,0,wood);box(windows,sideLength,.12,.38,0,5.2,0,trim);
+  box(windows,sideLength,7.35,.025,0,1.805,0,glass);
   for(let col=0;col<=8;col++){
-   const x=-sideLength/2+col*sideLength/8;box(windows,.11,7.9,.2,x,1.9,.06,wood);box(windows,.014,7.55,.012,x,1.9,.167,brass);
+   const x=-sideLength/2+col*sideLength/8;box(windows,.11,7.43,.2,x,1.665,.06,wood);box(windows,.014,7.2,.012,x,1.725,.167,brass);
   }
-  for(const y of [-.9,2.85,5.35])box(windows,sideLength,.065,.09,0,y,.12,iron);
+  for(const y of [-.3975,3.215,5.2])box(windows,sideLength,.065,.09,0,y,.12,iron);
   box(windows,sideLength,.16,.17,0,1.6,.16,iron);
   // Extend the sky beyond side glass so inspection never sees a void.
   box(architecture,.1,20,28,side*20,3,1,sky);

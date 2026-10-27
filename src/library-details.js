@@ -1,7 +1,11 @@
 import * as THREE from 'three';
+import {createRetroTowers} from './retro-towers.js';
+import {createBotanicalRadio} from './botanical-radio.js';
+import {createRetroComputer} from './retro-computer.js';
+import {createScrollShelf,createDeskLamp} from './library-furniture.js';
 import {createLibraryRug} from './library-rug.js';
 import {addLibraryInstruments} from './library-instruments.js';
-import {createNixieClock} from './nixie-clock.js';
+import {createNixieConsole} from './nixie-clock.js';
 import {createLibraryFrame} from './library-props.js';
 
 export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,stone,random,books,leafMaterial,sun}){
@@ -21,7 +25,7 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
   ];
   for(const [offset,y,z,w,h,yaw] of frameLayout){
    // Same unscaled frame profile as the original central frames (0.065 outer rim).
-   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(6.35+offset),y,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
+   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(5.55+offset-w),y-.6,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
    // Suspension points follow the rotated frame so their fine wires stay attached.
    frame.updateMatrixWorld(true);
    for(const edge of [-1,1]){
@@ -36,55 +40,39 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
  // Burgundy textile with gold polyhedral embroidery and hooked border trim.
  root.add(createLibraryRug());
  const rearPropsStart=new Set(root.children);
+ const towers=createRetroTowers();towers.position.set(-3.15,-2.395,-3.32);root.add(towers);
  // Research console on the left: four amber readouts, knobs, meter face and cable runs.
- const machine=new THREE.Group();machine.name='落地辉光钟 · 中央侧前方';machine.position.set(-6.4,-1.995,-1.6);machine.rotation.y=Math.PI/4;root.add(machine);
- box(1.25,.8,.65,0,0,0,leather,machine);box(1.2,.72,.025,0,0,.34,iron,machine);
- const nixie=createNixieClock(random);nixie.position.set(0,.12,.39);machine.add(nixie);
- root.userData.update=time=>nixie.userData.update(time);
- for(let i=0;i<7;i++){const knob=cylinder(.035,.035,.04,-.5+i*.16,-.22,.39,brass,machine);knob.rotation.x=Math.PI/2;}
+ const machine=createNixieConsole(random,{leather,iron,brass});machine.name='落地辉光钟 · 中央侧前方';machine.position.set(-6.4,-1.995,-1.6);machine.rotation.y=Math.PI/4;root.add(machine);
+ root.userData.update=time=>machine.userData.update(time);
  // Stacked folios, rolled papers, a desk radio and a small adjustable task lamp.
- for(let pile=0;pile<5;pile++){
+ const computer=createRetroComputer();computer.position.set(-1.19,-1.309,-3.6);root.add(computer);
+ for(let pile=1;pile<5;pile++){
   const x=-1.2+pile*.55,z=-3.55+(pile%2)*.15;
   for(let i=0;i<2+pile%3;i++){
    const group=new THREE.Group();group.position.set(x,-1.27+i*.08,z);group.rotation.y=(random()-.5)*.35;root.add(group);
    box(.38,.057,.27,0,0,0,paper,group);for(const y of [-.035,.035])box(.41,.015,.29,0,y,0,pile%2?walnut:trim,group);
   }
  }
- box(.45,.32,.19,.24,-1.1,-3.85,leather);box(.29,.2,.015,.19,-1.08,-3.744,iron);
- for(let i=0;i<9;i++)box(.008,.17,.008,.07+i*.026,-1.08,-3.73,trim);
- orb(.025,.41,-1.17,-3.73,brass);
- cylinder(.15,.18,.035,-1.17,-1.28,-3.55,brass);
- bar(new THREE.Vector3(-1.17,-1.28,-3.55),new THREE.Vector3(-1.23,-.72,-3.55),.018,brass);
- bar(new THREE.Vector3(-1.23,-.72,-3.55),new THREE.Vector3(-.94,-.55,-3.55),.018,brass);
- const shade=cylinder(.08,.21,.12,-.94,-.58,-3.55,iron);shade.rotation.z=-.25;
- // A foreground leaning canvas: its landscape is relief geometry within a wooden frame.
- const painting=new THREE.Group();painting.name='前排放大山水画';painting.position.set(1.7,-1.15,-3);painting.rotation.set(-.1,-.12,0);root.add(painting);
- const landscapeMaterial=mat(0xb4af90);
- box(2.15,1.5,.07,0,0,0,leather,painting);box(2.01,1.35,.018,0,0,.045,landscapeMaterial,painting);
- const paintingFrame=createLibraryFrame(2.15,1.5,trim,brass);paintingFrame.position.z=.045;painting.add(paintingFrame);
- // Layered mountain silhouettes and a quiet river replace the placeholder bars.
- for(let layer=0;layer<5;layer++){
-  const shape=new THREE.Shape();shape.moveTo(-1,-.67);
-  for(let i=0;i<=60;i++){const x=-1+i/30,y=.2-layer*.14+Math.sin(x*7+layer*1.8)*.09+Math.sin(x*17+layer)*.035;shape.lineTo(x,y);}
-  shape.lineTo(1,-.67);shape.closePath();
-  const mountain=new THREE.Mesh(new THREE.ShapeGeometry(shape),mat([0x949980,0x7d8b73,0x657b68,0x486451,0x304e40][layer]));mountain.position.z=.06+layer*.002;painting.add(mountain);
+ const radio=createBotanicalRadio();radio.position.set(.24,-1.309,-3.9);root.add(radio);
+ const deskLamp=createDeskLamp();deskLamp.position.set(1.34,-1.309,-3.93);root.add(deskLamp);
+ // Enlarged floor-standing frame, displaying the supplied artwork without cropping.
+ const painting=new THREE.Group();painting.name='书桌前落地画框 · 用户插画';painting.position.set(1.7,0,-3);painting.rotation.set(-.04,-.12,0);painting.scale.setScalar(1.25);root.add(painting);
+ box(2.15,1.5,.07,0,0,0,leather,painting);box(2.01,1.35,.018,0,0,.045,mat(0x292d2b),painting);
+ const artworkMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.92,metalness:0});
+ if(typeof document!=='undefined'){
+  const texture=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'artworks/desk-framed-art.jpg');texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;artworkMaterial.map=texture;
  }
- const river=new THREE.Shape();river.moveTo(.2,-.23);river.bezierCurveTo(-.05,-.4,.5,-.45,.1,-.67);river.lineTo(.55,-.67);river.bezierCurveTo(.65,-.45,.05,-.35,.24,-.23);
- const waterPainting=new THREE.Mesh(new THREE.ShapeGeometry(river),mat(0x929e8b));waterPainting.position.z=.073;painting.add(waterPainting);
- for(const x of [-.75,.75])bar(new THREE.Vector3(x,-.7,-.02),new THREE.Vector3(x,-1.2,-.38),.018,walnut,painting);
+ const artwork=new THREE.Mesh(new THREE.PlaneGeometry(2.01,2.01*1289/2148),artworkMaterial);artwork.position.z=.058;painting.add(artwork);
+ const paintingFrame=createLibraryFrame(2.15,1.5,trim,brass);paintingFrame.position.z=.045;painting.add(paintingFrame);
+ painting.updateWorldMatrix(true,true);const artworkBounds=new THREE.Box3().setFromObject(painting);painting.position.y+=-2.345-artworkBounds.min.y;
+ painting.userData.frameScale=1.25;painting.userData.floorY=-2.345;
  for(let i=0;i<4;i++){
   const group=new THREE.Group();group.position.set(-3.8+i*2.4,-2.15,-4.9+(i%2)*1.3);group.rotation.y=random()*.8;root.add(group);
   box(.42,.4,.42,0,0,0,trim,group);for(const x of [-.16,.16])box(.025,.4,.025,x,0,.225,brass,group);box(.13,.035,.025,0,.15,.23,brass,group);
  }
  // Low open shelving with leather scrolls, books and a draped travel trunk.
- const shelf=new THREE.Group();shelf.name='右侧矮书架 · 牛皮卷轴与书本';shelf.position.set(4.7,-2.35,-4.3);root.add(shelf);
- for(const x of [-.67,.67])box(.08,1.15,.48,x,.575,0,walnut,shelf);
- for(const y of [.08,.57,1.12])box(1.42,.065,.52,0,y,0,trim,shelf);
- for(let i=0;i<9;i++){const book=new THREE.Group();book.position.set(-.55+i*.105,.64,.04);book.rotation.z=(i%3-1)*.08;shelf.add(book);box(.085,.28+(i%3)*.045,.31,0,.14,0,i%2?walnut:leather,book);for(const y of [.05,.23])box(.065,.009,.009,0,y,.163,brass,book);}
- for(let i=0;i<5;i++){
-  const scroll=cylinder(.055,.055,.4,-.45+i*.22,1.23,.02,paper,shelf);scroll.rotation.x=Math.PI/2;
-  const tie=new THREE.Mesh(new THREE.TorusGeometry(.057,.008,5,20),leather);tie.position.set(-.45+i*.22,1.23,.02);shelf.add(tie);
-  for(const z of [-.205,.205]){const end=new THREE.Mesh(new THREE.TorusGeometry(.04,.007,5,20),trim);end.position.set(-.45+i*.22,1.23,.02+z);shelf.add(end);}
+ for(const z of [-1.4,.25]){
+  const shelf=createScrollShelf({walnut,trim,brass,paper,leather});shelf.position.set(4.05,-2.395,z);shelf.rotation.y=-Math.PI/2;root.add(shelf);
  }
  const trunk=new THREE.Group();trunk.name='旅行箱 · 自然垂搭布料';trunk.position.set(3.5,-2.35,-2.6);root.add(trunk);
  box(1.05,.53,.61,0,.3,0,leather,trunk);box(1.08,.065,.64,0,.59,0,trim,trunk);

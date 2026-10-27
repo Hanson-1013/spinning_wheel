@@ -14,7 +14,7 @@ function curvedBlade(width,length,droop,seed=0){
 export function addTallTropicalPlants(garden,random){
  const stemMaterial=new THREE.MeshStandardMaterial({color:0x405630,roughness:.85});
  const broadMaterials=[0x3b6336,0x4d7140,0x315330].map(color=>new THREE.MeshPhysicalMaterial({color,side:THREE.DoubleSide,roughness:.62,clearcoat:.07,clearcoatRoughness:.6}));
- const palmMaterial=new THREE.MeshStandardMaterial({color:0x41623a,side:THREE.DoubleSide,roughness:.75});
+ const palmMaterial=new THREE.MeshStandardMaterial({color:0x153b2e,side:THREE.DoubleSide,roughness:.75});
  for(const m of [...broadMaterials,palmMaterial])m.userData.foliage=true;
  const leafletGeometry=curvedBlade(.043,1,.2);
  function fitOutside(plant){
@@ -63,7 +63,7 @@ export function addTallTropicalPlants(garden,random){
 
 export function createIndoorAreca(random=Math.random){
  const plant=new THREE.Group();plant.name='室内小型散尾葵 · 浓密羽状叶';
- const green=new THREE.MeshPhysicalMaterial({color:0x35582e,side:THREE.DoubleSide,roughness:.48,clearcoat:.2});
+ const green=new THREE.MeshPhysicalMaterial({color:0x12392b,side:THREE.DoubleSide,roughness:.48,clearcoat:.2});
  green.userData.foliage=true;
  const stem=new THREE.MeshStandardMaterial({color:0x687343,roughness:.7});
  const blade=curvedBlade(.018,1,.17);

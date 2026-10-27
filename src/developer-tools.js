@@ -7,7 +7,7 @@ import {createBotanicalLibrary} from './botanical-library.js';
 export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer,water,cameraRig,performanceStage}){
  const panel=document.createElement('section');panel.className='developer-panel';panel.setAttribute('aria-label','素材试验台');
  panel.innerHTML=`<div class="dev-heading"><strong>素材试验台</strong><button id="dev-collapse" aria-expanded="true">收起</button></div>
- <div id="dev-content"><p>独立开发页面 · <a href="/">返回展示首页</a></p>
+ <div id="dev-content"><p>独立开发页面 · <a href="/">返回展示首页</a> · <a href="/test/modules">手机单模组查看</a></p>
  <p>导入 GLB 模型、PNG / JPG / WebP 图片或音频。素材仅在本次页面中试用，刷新后清除。</p>
  <label class="dev-upload">添加素材<input id="dev-files" type="file" multiple accept=".glb,.png,.jpg,.jpeg,.webp,.mp3,.wav,.ogg,.m4a"></label>
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
@@ -34,8 +34,9 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  };
 
  const toggleRow=(label,objects)=>{
+  for(const object of objects)object.visible=false;
   const row=document.createElement('div');row.className='dev-row';const name=document.createElement('span');name.textContent=label;
-  const button=document.createElement('button');button.textContent='隐藏';button.setAttribute('aria-pressed','true');
+  const button=document.createElement('button');button.textContent='显示';button.setAttribute('aria-pressed','false');
   button.onclick=()=>{const visible=button.getAttribute('aria-pressed')!=='true';for(const o of objects)o.visible=visible;button.setAttribute('aria-pressed',String(visible));button.textContent=visible?'隐藏':'显示';};
   row.append(name,button);find('dev-builtins').appendChild(row);
  };
@@ -84,5 +85,6 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
   }
  };
  find('dev-show-all').onclick=()=>assets.forEach(a=>setVisible(a,true));find('dev-hide-all').onclick=()=>assets.forEach(a=>setVisible(a,false));
+ find('dev-backdrop').value='library';find('dev-backdrop').dispatchEvent(new Event('change'));
  return {update(time){cameraTools.update();if(librarySet?.visible)librarySet.userData.update?.(time);}};
 }
