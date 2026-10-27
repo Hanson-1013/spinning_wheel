@@ -34,7 +34,7 @@ export function createMonsteraLeaf(variant=0){
  geometry.computeVertexNormals();geometry.userData.variant=variant;return geometry;
 }
 export function leafBend(x,t,variant){
- const droop=[.19,.32,.4,.27,.52][variant];
+ const droop=[.26,.43,.54,.37,.69][variant];
  const twist=[.07,-.18,.24,-.22,.3][variant];
  const cup=[.25,-.28,.36,-.18,.42][variant];
  return -droop*t*t+.065*Math.sin(Math.PI*t)+cup*x*x+twist*x*Math.sin(Math.PI*t)+.028*Math.sin(t*13+variant*1.7)*Math.abs(x);
@@ -64,17 +64,17 @@ export function createMonsteraPlant(height,random,materials,leafGeometries,optio
  const stemMaterial=materials.stem,bladeMaterials=materials.leaves;
  const stemBase=new THREE.Vector3(0,.39,0),count=options.leafCount??(7+Math.floor(random()*4));
  for(let i=0;i<count;i++){
-  const a=i*2.399+random()*.3,juvenile=i<(options.leafCount?4:2),reach=height*(.25+random()*.24),rise=height*(juvenile?.28:options.leafCount?.3+random()*.5:.45+random()*.32);
+  const a=i*2.399+random()*.3,juvenile=i<(options.leafCount?4:2),reach=height*(.19+random()*.18),rise=height*(juvenile?.28:options.leafCount?.3+random()*.5:.45+random()*.32);
   const outward=new THREE.Vector3(Math.cos(a),0,Math.sin(a));
   const end=outward.clone().multiplyScalar(reach);end.y=.4+rise;
-  const curve=new THREE.CubicBezierCurve3(stemBase.clone(),new THREE.Vector3(0,.4+rise*.75,0),outward.clone().multiplyScalar(reach*.65).add(new THREE.Vector3(0,end.y+.12+reach*.16,0)),end);
+  const curve=new THREE.CubicBezierCurve3(stemBase.clone(),new THREE.Vector3(0,.4+rise*.75,0),outward.clone().multiplyScalar(reach*.56).add(new THREE.Vector3(0,end.y+.24+reach*.3,0)),end);
   const stalk=new THREE.Mesh(new THREE.TubeGeometry(curve,24,.009+height*.003,6,false),stemMaterial);root.add(stalk);
   const variant=juvenile?0:1+Math.floor(random()*4),size=height*(juvenile?.24:.32+random()*.17);
   const blade=new THREE.Mesh(leafGeometries[variant],bladeMaterials[i%bladeMaterials.length]);
   const tangent=new THREE.Vector3(-Math.sin(a),0,Math.cos(a));
   blade.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(tangent,outward,new THREE.Vector3(0,1,0)));
   blade.rotateY((random()-.5)*.2);blade.rotateX((random()-.5)*.18);
-  blade.position.copy(end);blade.scale.set(size*(.87+random()*.2)*(options.leafWidth??1),size,size);root.add(blade);
+  blade.position.copy(end);blade.scale.set(size*(.7+random()*.16)*(options.leafWidth??1),size,size);root.add(blade);
   const midrib=[];for(let j=0;j<=16;j++){const t=j/16;midrib.push(new THREE.Vector3(0,t,leafBend(0,t,variant)+.004));}
   const vein=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(midrib),24,.0028,5,false),stemMaterial);vein.position.copy(blade.position);vein.quaternion.copy(blade.quaternion);vein.scale.copy(blade.scale);root.add(vein);
  }

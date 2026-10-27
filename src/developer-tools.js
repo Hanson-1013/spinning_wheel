@@ -13,19 +13,24 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
  <div class="dev-actions"><button id="dev-show-all">显示全部素材</button><button id="dev-hide-all">隐藏全部素材</button></div>
  <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option></select><p>植物书房采用三维建模，可与纺车、水面及导入素材共同呈现。</p>
+ <h2>室内雾气</h2><div class="dev-row"><span>室内轻雾</span><button id="dev-mist-toggle" aria-pressed="true">隐藏雾气</button></div>
+ <label for="dev-mist-density">浓度 <output id="dev-mist-value">16%</output></label><input id="dev-mist-density" type="range" min="0" max="100" step="1" value="16" aria-label="室内雾气浓度">
  <div id="dev-camera"></div><h2>场景内容</h2><div id="dev-builtins"></div><h2>导入素材</h2><div id="dev-assets"></div></div>`;
  document.querySelector('#app').appendChild(panel);
  const find=id=>panel.querySelector('#'+id),assets=[];
  const status=text=>find('dev-status').textContent=text;
  const cameraTools=setupCameraTools(find('dev-camera'),cameraRig,canvas);
  const originalBackground=scene.background,originalFog=scene.fog,originalShadows=renderer.shadowMap.enabled;
- let librarySet=null;
+ let librarySet=null,mistVisible=true;
+ function applyMist(){const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible);api.setDensity(find('dev-mist-density').value);}}
+ find('dev-mist-toggle').onclick=()=>{mistVisible=!mistVisible;find('dev-mist-toggle').textContent=mistVisible?'隐藏雾气':'显示雾气';find('dev-mist-toggle').setAttribute('aria-pressed',String(mistVisible));applyMist();};
+ find('dev-mist-density').oninput=()=>{find('dev-mist-value').textContent=find('dev-mist-density').value+'%';applyMist();};
  const originalVisibility=backdropObjects.map(object=>object.visible);
  find('dev-backdrop').onchange=e=>{
   const useLibrary=e.target.value==='library';
   cameraRig.setStageOffset(useLibrary?1.2:0);
   if(useLibrary&&!librarySet){librarySet=createBotanicalLibrary();scene.add(librarySet);}
-  if(librarySet)librarySet.visible=useLibrary;
+  if(librarySet)librarySet.visible=useLibrary;applyMist();
   renderer.shadowMap.enabled=useLibrary||originalShadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   scene.background=useLibrary?new THREE.Color(0xbacac2):originalBackground;
   scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):originalFog;
@@ -40,13 +45,10 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
   button.onclick=()=>{const visible=button.getAttribute('aria-pressed')!=='true';for(const o of objects)o.visible=visible;button.setAttribute('aria-pressed',String(visible));button.textContent=visible?'隐藏':'显示';};
   row.append(name,button);find('dev-builtins').appendChild(row);
  };
- toggleRow('纺车',[wheel]);
- toggleRow('水池',[water.poolGroup]);
- toggleRow('雨滴',[water.rainGroup]);
  // Use a parent group so the animation may continue updating each particle layer internally.
  const particles=new THREE.Group();performanceStage.add(particles);
  for(const object of [...performanceStage.children])if(object.isPoints)particles.add(object);
- toggleRow('粒子',[particles]);
+ toggleRow('纺车四件套',[wheel,water.poolGroup,water.rainGroup,particles]);
  find('dev-collapse').onclick=e=>{const hidden=find('dev-content').hidden=!find('dev-content').hidden;e.target.textContent=hidden?'展开':'收起';e.target.setAttribute('aria-expanded',String(!hidden));};
  function setVisible(asset,visible){asset.visible=visible;if(asset.object)asset.object.visible=visible;if(asset.audio&&!visible)asset.audio.pause();asset.toggle.textContent=visible?'隐藏':'显示';asset.toggle.setAttribute('aria-pressed',String(visible));}
  const dispose=object=>object?.traverse(o=>{o.geometry?.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])if(material){for(const value of Object.values(material))if(value?.isTexture)value.dispose();material.dispose();}});

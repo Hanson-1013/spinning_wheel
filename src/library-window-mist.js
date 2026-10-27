@@ -23,8 +23,8 @@ export function addWindowMist(root){
  });
  const mist=new THREE.Group();mist.name='玻璃外侧 · 缓慢流动薄雾';root.add(mist);
  function plane(width,x,z,angle){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(width,7.7),material);mesh.position.set(x,1.4,z);mesh.rotation.y=angle;mesh.userData.dynamic=true;mesh.renderOrder=1;mist.add(mesh);}
- plane(13,0,-6.55,0);
- for(const side of [-1,1])plane(13.15,side*9.46,2.92,-side*Math.PI/2);
+ plane(14,0,-6.55,0);
+ for(const side of [-1,1])plane(13.15,side*9.96,2.92,-side*Math.PI/2);
  const previous=root.userData.update;root.userData.update=t=>{previous?.(t);time.value=t;};
  return mist;
 }

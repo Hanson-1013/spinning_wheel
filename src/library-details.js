@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import {createLibraryServer} from './library-server.js';
 import {createRetroTowers} from './retro-towers.js';
 import {createBotanicalRadio} from './botanical-radio.js';
 import {createRetroComputer} from './retro-computer.js';
-import {createScrollShelf,createDeskLamp} from './library-furniture.js';
+import {createScrollShelf,createDeskLamp,createDeskBooksAndScrolls,createDrawerCabinet} from './library-furniture.js';
 import {createLibraryRug} from './library-rug.js';
 import {addLibraryInstruments} from './library-instruments.js';
 import {createNixieConsole} from './nixie-clock.js';
@@ -36,23 +37,18 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
 
  }
  // Ceiling beams and diagonal sun streaks across the floor.
- for(let i=0;i<10;i++)box(.14,.25,15,-9+i*2,5.52,.5,trim);
+ for(let i=0;i<10;i++)box(.14,.25,15,-9+i*2,5.22,.5,trim);
  // Burgundy textile with gold polyhedral embroidery and hooked border trim.
  root.add(createLibraryRug());
  const rearPropsStart=new Set(root.children);
- const towers=createRetroTowers();towers.position.set(-3.15,-2.395,-3.32);root.add(towers);
+ const towers=createRetroTowers();towers.position.set(-2.55,-2.395,-3.32);root.add(towers);
  // Research console on the left: four amber readouts, knobs, meter face and cable runs.
  const machine=createNixieConsole(random,{leather,iron,brass});machine.name='落地辉光钟 · 中央侧前方';machine.position.set(-6.4,-1.995,-1.6);machine.rotation.y=Math.PI/4;root.add(machine);
- root.userData.update=time=>machine.userData.update(time);
+ const server=createLibraryServer();server.position.set(machine.position.x-Math.SQRT1_2,-2.395,machine.position.z-Math.SQRT1_2);server.rotation.y=machine.rotation.y;root.add(server);
+ root.userData.update=time=>{machine.userData.update(time);server.userData.update(time);};
  // Stacked folios, rolled papers, a desk radio and a small adjustable task lamp.
- const computer=createRetroComputer();computer.position.set(-1.19,-1.309,-3.6);root.add(computer);
- for(let pile=1;pile<5;pile++){
-  const x=-1.2+pile*.55,z=-3.55+(pile%2)*.15;
-  for(let i=0;i<2+pile%3;i++){
-   const group=new THREE.Group();group.position.set(x,-1.27+i*.08,z);group.rotation.y=(random()-.5)*.35;root.add(group);
-   box(.38,.057,.27,0,0,0,paper,group);for(const y of [-.035,.035])box(.41,.015,.29,0,y,0,pile%2?walnut:trim,group);
-  }
- }
+ const computer=createRetroComputer();computer.position.set(-1.19,-1.295,-3.6);root.add(computer);
+ const deskBooks=createDeskBooksAndScrolls({walnut,trim,paper});deskBooks.position.set(0,-2.35,-3.6);root.add(deskBooks);
  const radio=createBotanicalRadio();radio.position.set(.24,-1.309,-3.9);root.add(radio);
  const deskLamp=createDeskLamp();deskLamp.position.set(1.34,-1.309,-3.93);root.add(deskLamp);
  // Enlarged floor-standing frame, displaying the supplied artwork without cropping.
@@ -67,25 +63,53 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
  painting.updateWorldMatrix(true,true);const artworkBounds=new THREE.Box3().setFromObject(painting);painting.position.y+=-2.345-artworkBounds.min.y;
  painting.userData.frameScale=1.25;painting.userData.floorY=-2.345;
  for(let i=0;i<4;i++){
-  const group=new THREE.Group();group.position.set(-3.8+i*2.4,-2.15,-4.9+(i%2)*1.3);group.rotation.y=random()*.8;root.add(group);
+  const group=new THREE.Group();group.position.set(-3.8+i*2.4,-2.15,-4.9+(i%2)*1.3);group.rotation.y=random()*.8;if(i!==2)continue;group.name='后排保留小箱子';root.add(group);
   box(.42,.4,.42,0,0,0,trim,group);for(const x of [-.16,.16])box(.025,.4,.025,x,0,.225,brass,group);box(.13,.035,.025,0,.15,.23,brass,group);
  }
- // Low open shelving with leather scrolls, books and a draped travel trunk.
- for(const z of [-1.4,.25]){
-  const shelf=createScrollShelf({walnut,trim,brass,paper,leather});shelf.position.set(4.05,-2.395,z);shelf.rotation.y=-Math.PI/2;root.add(shelf);
+ // Two shelves near the areca, each with an independent drawer cabinet in front.
+ for(const [i,z] of [1.15-.4*(1.85/1.448),1.15+.4*(1.85/1.448)].entries()){
+  const shelf=createScrollShelf({walnut,trim,brass,paper,leather},{variation:i});shelf.position.set(4.05,-2.395,z);shelf.rotation.y=-Math.PI/2;root.add(shelf);
+  const cabinet=createDrawerCabinet({walnut,trim,brass,paper});
+  for(const child of [...cabinet.children])if(child.name==='柜顶书本'||child.name==='柜顶绿植')cabinet.remove(child);
+  cabinet.name='右侧书架前独立抽屉柜';cabinet.position.set(3.474,-2.395,1.15+(i-.5)*.712);cabinet.rotation.y=-Math.PI/2;root.add(cabinet);
  }
- const trunk=new THREE.Group();trunk.name='旅行箱 · 自然垂搭布料';trunk.position.set(3.5,-2.35,-2.6);root.add(trunk);
- box(1.05,.53,.61,0,.3,0,leather,trunk);box(1.08,.065,.64,0,.59,0,trim,trunk);
- for(const x of [-.37,.37]){box(.045,.53,.015,x,.3,.313,brass,trunk);box(.045,.015,.61,x,.635,0,brass,trunk);}
- box(.2,.065,.025,0,.36,.325,brass,trunk);
- const fabricGeometry=new THREE.PlaneGeometry(.68,1.1,24,40),fp=fabricGeometry.attributes.position;
- for(let i=0;i<fp.count;i++){const x=fp.getX(i),t=fp.getY(i)+.55;const z=-.3+Math.min(t,.62),y=t<.62?.645:.645-(t-.62);fp.setXYZ(i,x,y+.012*Math.sin(x*43+t*8),z+(t>.62?.025*Math.sin(x*35):0));}fabricGeometry.computeVertexNormals();
- const trunkCloth=new THREE.Mesh(fabricGeometry,new THREE.MeshStandardMaterial({color:0x9a8c79,roughness:1,side:THREE.DoubleSide}));trunkCloth.rotation.y=.12;trunk.add(trunkCloth);
+ const silkGroup=new THREE.Group();silkGroup.name='双抽屉柜上 · 珊瑚色斜搭丝绸';silkGroup.position.set(3.474,-2.395,1.15);root.add(silkGroup);
+ const silkMaterial=new THREE.MeshPhysicalMaterial({color:0xc7796b,roughness:.42,metalness:0,sheen:.85,sheenColor:0xf1b1a0,sheenRoughness:.52,side:THREE.DoubleSide});
+ const silkGeometry=new THREE.PlaneGeometry(.85,1.42,70,90),silkPositions=silkGeometry.attributes.position;
+ for(let i=0;i<silkPositions.count;i++){
+  const u=silkPositions.getX(i),v=silkPositions.getY(i),x=u*Math.cos(.12)-v*Math.sin(.12),z=u*Math.sin(.12)+v*Math.cos(.12);
+  const over=Math.max(0,Math.abs(x)-.265),fold=Math.sin(z*25)*.009+Math.sin(z*43+1)*.004;
+  // The two equal-height cabinet tops support a single continuous cloth.
+  const sag=0;
+  silkPositions.setXYZ(i,Math.sign(x)*(Math.min(Math.abs(x),.265)+Math.min(over,.035)),.96-over*.95-sag+fold*Math.min(1,over*12),z);
+ }
+ silkGeometry.computeVertexNormals();const silk=new THREE.Mesh(silkGeometry,silkMaterial);silk.castShadow=true;silk.receiveShadow=true;silkGroup.add(silk);
+ // Two floor book stacks tucked beside the drawer cabinet, clear of the areca pot.
+ for(let pile=0;pile<2;pile++){
+  const stack=new THREE.Group();stack.name='右侧角落落地书堆';stack.position.set(3.02+pile*.36,-2.395,1.99+pile*.08);stack.rotation.y=pile?-.12:.09;root.add(stack);
+  for(let i=0;i<(pile?5:8);i++){
+   const book=new THREE.Group();book.position.set(Math.sin(i*2.3)*.012,.022+i*.046,0);book.rotation.y=Math.sin(i+pile)*.065;stack.add(book);
+   box(.29,.034,.22,0,0,0,paper,book);
+   for(const y of [-.02,.02])box(.315,.006,.235,0,y,0,(i+pile)%2?walnut:leather,book);
+   box(.012,.044,.235,-.151,0,0,trim,book);
+  }
+ }
+ // Laboratory flasks stand on the silk, with sealed liquid volumes and flat menisci.
+ const glass=new THREE.MeshPhysicalMaterial({color:0xe6f6ee,transparent:true,opacity:.29,roughness:.08,metalness:0,clearcoat:1,side:THREE.DoubleSide,depthWrite:false});
+ const flaskProfile=[[.001,.004],[.063,.004],[.076,.013],[.079,.028],[.073,.055],[.03,.16],[.021,.19],[.021,.265],[.026,.269],[.026,.278],[.017,.278],[.017,.194],[.026,.163],[.069,.052],[.074,.027],[.069,.014],[.001,.012]].map(([r,y])=>new THREE.Vector2(r,y));
+ for(let i=0;i<4;i++){
+  const flask=new THREE.Group();flask.name=i%2?'蓝色液体锥形瓶':'绿色液体锥形瓶';flask.position.set(3.474+[-.09,.09,-.085,.095][i],-1.433,1.15+[-.13,-.09,.065,.085][i]);flask.scale.setScalar([1,.83,1.12,.91][i]);root.add(flask);
+  const shell=new THREE.Mesh(new THREE.LatheGeometry(flaskProfile,32),glass);shell.renderOrder=3;flask.add(shell);
+  const fill=.075+(i%3)*.017,topRadius=.069-(fill-.052)*.42;
+  const liquidMaterial=new THREE.MeshPhysicalMaterial({color:i%2?0x093765:0x0b4930,transparent:true,opacity:.94,roughness:.16,clearcoat:1});
+  const liquid=new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(0,.014),new THREE.Vector2(.067,.014),new THREE.Vector2(.072,.028),new THREE.Vector2(.069,.052),new THREE.Vector2(topRadius,fill),new THREE.Vector2(0,fill)],32),liquidMaterial);liquid.renderOrder=2;flask.add(liquid);
+  for(let mark=0;mark<3;mark++){const line=new THREE.Mesh(new THREE.BoxGeometry(.011,.0015,.001),new THREE.MeshBasicMaterial({color:0xdbe5dc}));line.position.set(.012,.06+mark*.023,.07-mark*.009);flask.add(line);}
+ }
  // Procedural surface detail: worn timber grain, book spine tooling, leaf veins.
  if(typeof document!=='undefined'){
   function texture(w,h,paint){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const c=canvas.getContext('2d');paint(c,w,h);const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;return map;}
-  stone.color.setHex(0x51564d);
-  stone.map=texture(128,128,(c,w,h)=>{c.fillStyle='#9d9e92';c.fillRect(0,0,w,h);for(let i=0;i<16000;i++){const tone=100+Math.floor(random()*80);c.fillStyle=`rgba(${tone},${tone},${tone},.16)`;c.fillRect(random()*w,random()*h,2,2);}});stone.map.wrapS=stone.map.wrapT=THREE.RepeatWrapping;stone.map.repeat.set(1,1);stone.bumpMap=stone.map;stone.bumpScale=.0018;stone.roughness=.32;stone.needsUpdate=true;
+  stone.color.setHex(0x4e4941);
+  stone.map=texture(128,128,(c,w,h)=>{c.fillStyle='#b4aca0';c.fillRect(0,0,w,h);for(let i=0;i<16000;i++){const tone=100+Math.floor(random()*80);c.fillStyle=`rgba(${tone},${tone},${tone},.16)`;c.fillRect(random()*w,random()*h,2,2);}});stone.map.wrapS=stone.map.wrapT=THREE.RepeatWrapping;stone.map.repeat.set(1,1);stone.bumpMap=stone.map;stone.bumpScale=.0018;stone.roughness=.47;stone.needsUpdate=true;
   const wood=texture(128,512,(c,w,h)=>{c.fillStyle='#b7a489';c.fillRect(0,0,w,h);for(let i=0;i<950;i++){const x=random()*w;c.strokeStyle=`rgba(40,25,14,${.03+random()*.14})`;c.beginPath();c.moveTo(x,0);for(let y=0;y<=h;y+=16)c.lineTo(x+Math.sin(y*.025+i)*(.8+random()*2),y);c.stroke();}});
   for(const m of [walnut,trim]){m.map=wood;m.bumpMap=wood;m.bumpScale=.012;m.needsUpdate=true;}
   books.material.map=texture(64,256,(c,w,h)=>{c.fillStyle='#d0c5ac';c.fillRect(0,0,w,h);for(const y of [18,27,205,214]){c.fillStyle='#74644b';c.fillRect(0,y,w,3);}c.strokeStyle='#92805b';c.strokeRect(8,58,48,76);for(let i=0;i<6;i++){c.fillStyle='#8d8169';c.fillRect(15,70+i*9,24+(i%3)*4,2);}for(let i=0;i<700;i++){c.fillStyle=`rgba(40,30,20,${random()*.13})`;c.fillRect(random()*w,random()*h,1,2);}});books.material.needsUpdate=true;

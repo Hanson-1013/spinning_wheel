@@ -1,15 +1,16 @@
 import * as THREE from 'three';
+import {LIBRARY_CEILING_BOTTOM} from './library-window-layout.js';
 
 export function addLibraryCeiling(root){
- const group=new THREE.Group();group.name='双眼皮吊顶 · 木色双层错台';root.add(group);
+ const group=new THREE.Group();group.name='双眼皮吊顶 · 木色双层错台';group.position.y=-.3;root.add(group);
  const plaster=new THREE.MeshStandardMaterial({color:0x65503b,roughness:.96}),edge=new THREE.MeshStandardMaterial({color:0x806347,roughness:.92}),reveal=new THREE.MeshStandardMaterial({color:0x302a23,roughness:1});
  const pixels=new Uint8Array(128*256*4);
  for(let y=0;y<256;y++)for(let x=0;x<128;x++){const fiber=x+2*Math.sin(y*.022),v=Math.round(190+19*Math.sin(fiber*2.1)+7*Math.sin(fiber*6.2));pixels.set([v,v,v,255],(y*128+x)*4);}
  const woodgrain=new THREE.DataTexture(pixels,128,256);woodgrain.wrapS=woodgrain.wrapT=THREE.RepeatWrapping;woodgrain.repeat.set(.35,.35);woodgrain.needsUpdate=true;
  for(const m of [plaster,edge]){m.map=woodgrain;m.bumpMap=woodgrain;m.bumpScale=.001;m.roughness=.85;}
  const beige=new THREE.MeshStandardMaterial({color:0xc6bda5,roughness:.97});
- const run=(Math.hypot(3,3)-.5)/Math.SQRT2,sideX=6.5+run,cornerZ=-6.3+run;
- const polygon=[[-6.5,-6.3],[6.5,-6.3],[sideX,cornerZ],[sideX,9.5],[-sideX,9.5],[-sideX,cornerZ]];
+ const run=(Math.hypot(3,3)-.5)/Math.SQRT2,sideX=7+run,cornerZ=-6.3+run;
+ const polygon=[[-7,-6.3],[7,-6.3],[sideX,cornerZ],[sideX,9.5],[-sideX,9.5],[-sideX,cornerZ]];
  function inset(distance){
   return polygon.map((p,i)=>{
    const previous=polygon[(i+polygon.length-1)%polygon.length],next=polygon[(i+1)%polygon.length];
@@ -30,6 +31,6 @@ export function addLibraryCeiling(root){
  slab(.87,1.02,5.27,.065,edge,'第二道错层细边');
  // Subtle reflected daylight prevents the matte underside becoming a black silhouette.
  const bounce=new THREE.HemisphereLight(0xe6dfc8,0x42483e,.35);group.add(bounce);
- group.userData.levels=2;group.userData.bottom=4.83;
+ group.userData.levels=2;group.userData.bottom=LIBRARY_CEILING_BOTTOM;
  return group;
 }

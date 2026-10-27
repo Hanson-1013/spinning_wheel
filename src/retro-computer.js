@@ -37,7 +37,9 @@ export function createRetroComputer(){
  // Coiled keyboard lead around the rear socket.
  const points=[];for(let i=0;i<=64;i++){const t=i/64;points.push(new THREE.Vector3(.18+.025*Math.sin(t*Math.PI*16),.2+t*.04,-.22-t*.12));}
  root.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),64,.0025,5,false),edge));
- root.scale.setScalar(.82);
- root.rotation.y=Math.PI-Math.PI/7;
+ // Narrow the keyboard deck, keys and lower chassis together, preserving the CRT proportions.
+ for(const child of root.children)if(child.position.y<.24){child.scale.x*=.82;child.position.x*=.82;}
+ root.scale.setScalar(.69);
+ root.rotation.y=Math.PI-Math.PI/7-Math.PI/2;
  return root;
 }

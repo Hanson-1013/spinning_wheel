@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {WINDOW_TRANSOMS,LIBRARY_CEILING_BOTTOM} from './library-window-layout.js';
 import {createLibraryFrame} from './library-props.js';
 
 export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
@@ -6,8 +7,8 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
  const wallMaterial=new THREE.MeshStandardMaterial({color:0x39382e,roughness:.88});
  const geometry=new THREE.BoxGeometry(1,1,1);
  function box(parent,w,h,d,x,y,z,material){
-  if(material!==sky){const lower=v=>v-.5*THREE.MathUtils.smoothstep(v,4.5,5.5),bottom=lower(y-h/2),top=lower(y+h/2);h=top-bottom;y=(top+bottom)/2;}
-  const object=new THREE.Mesh(geometry,material);object.scale.set(w,h,d);object.position.set(x,y,z);object.receiveShadow=true;parent.add(object);return object;}
+  if(material!==sky){const lower=v=>v-.5*THREE.MathUtils.smoothstep(v,4.5,5.5),bottom=lower(y-h/2),top=parent.name.includes('落地玻璃')?Math.min(LIBRARY_CEILING_BOTTOM,lower(y+h/2)):lower(y+h/2);h=top-bottom;y=(top+bottom)/2;}
+  const object=new THREE.Mesh(geometry,material);object.scale.set(w,h,d);object.position.set(x,y,z);object.receiveShadow=true;object.castShadow=material!==sky&&!material.transparent;parent.add(object);return object;}
  function rod(parent,a,b,width=.012,material=brass){const delta=b.clone().sub(a),object=box(parent,width,delta.length(),.018,0,0,0,material);object.position.copy(a).add(b).multiplyScalar(.5);object.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());return object;}
  function artwork(rays=true){
   const art=new THREE.Group();art.name='斜墙挂画 · 黄铜放射装饰';
@@ -37,7 +38,7 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
  const diagonalRun=diagonalLength/Math.SQRT2,sideStart=-6.3+diagonalRun;
  const sideLength=9.5-sideStart;
  for(const side of [-1,1]){
-  const wall=new THREE.Group();wall.name=side===1?'右侧45度实体墙':'左侧45度实体墙';wall.position.set(side*(6.5+diagonalRun/2),0,-6.3+diagonalRun/2);wall.rotation.y=-side*Math.PI/4;architecture.add(wall);
+  const wall=new THREE.Group();wall.name=side===1?'右侧45度实体墙':'左侧45度实体墙';wall.position.set(side*(7+diagonalRun/2),0,-6.3+diagonalRun/2);wall.rotation.y=-side*Math.PI/4;architecture.add(wall);
   box(wall,diagonalLength,8.6,.34,0,1.9,0,wallMaterial);
   box(wall,diagonalLength,.32,.4,0,5.96,.015,wood);box(wall,diagonalLength,.12,.42,0,5.72,.04,trim);
   box(wall,diagonalLength,.35,.4,0,-2.2,.02,wood);box(wall,diagonalLength,.055,.035,0,-1.99,.24,brass);
@@ -54,14 +55,14 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
    for(let line=0;line<26;line++)box(pillar,.008,7.85,.014,-.325+line*.026,1.9,.219,brass);
    for(const y of [-2.19,5.98]){box(pillar,1.12,.18,.56,0,y,0,trim);box(pillar,1.02,.025,.51,0,y+.11,0,brass);}
   }
-  const windows=new THREE.Group();windows.name=side===1?'右侧落地玻璃':'左侧落地玻璃';windows.position.set(side*(6.5+diagonalRun),0,(9.5+sideStart)/2);windows.rotation.y=-side*Math.PI/2;architecture.add(windows);
-  box(windows,sideLength,.55,.26,0,-2.12,0,wood);box(windows,sideLength,.12,.38,0,5.2,0,trim);
+  const windows=new THREE.Group();windows.name=side===1?'右侧落地玻璃':'左侧落地玻璃';windows.position.set(side*(7+diagonalRun),0,(9.5+sideStart)/2);windows.rotation.y=-side*Math.PI/2;architecture.add(windows);
+  box(windows,sideLength,.55,.26,0,-2.12,0,wood);box(windows,sideLength,.12,.38,0,4.47,0,trim);
   box(windows,sideLength,7.35,.025,0,1.805,0,glass);
   for(let col=0;col<=8;col++){
    const x=-sideLength/2+col*sideLength/8;box(windows,.11,7.43,.2,x,1.665,.06,wood);box(windows,.014,7.2,.012,x,1.725,.167,brass);
   }
-  for(const y of [-.3975,3.215,5.2])box(windows,sideLength,.065,.09,0,y,.12,iron);
-  box(windows,sideLength,.16,.17,0,1.6,.16,iron);
+  for(const y of [WINDOW_TRANSOMS[0],WINDOW_TRANSOMS[2],4.47])box(windows,sideLength,.065,.09,0,y,.12,iron);
+  box(windows,sideLength,.16,.17,0,WINDOW_TRANSOMS[1],.16,iron);
   // Extend the sky beyond side glass so inspection never sees a void.
   box(architecture,.1,20,28,side*20,3,1,sky);
  }

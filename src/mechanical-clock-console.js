@@ -63,7 +63,7 @@ export function createMechanicalConsole(clock,random=Math.random){
  for(let i=0;i<18;i++)line([[-.7+i*.079,-.269,-.28],[-.7+i*.079,-.269,-.02],[-.65+i*.079,-.269,.03]],.0017,brass);
  // Layered spur gears with teeth and drilled hubs inside the open enclosure.
  for(let i=0;i<3;i++){
-  const gear=new THREE.Group();gear.position.set(-.35+i*.27,-.075,.31);root.add(gear);const radius=[.105,.075,.092][i];
+  const gear=new THREE.Group();gear.position.set(-.35+i*.27,-.075,.31);root.add(gear);gear.userData.rigidGear=true;const radius=[.105,.075,.092][i];
   const disk=cyl(radius,.022,0,0,0,brass,gear);disk.rotation.x=Math.PI/2;ring(radius*.65,.012,0,0,.013,dark,gear);ring(radius*.24,.01,0,0,.02,steel,gear);
   for(let tooth=0;tooth<24;tooth++){const a=tooth*Math.PI/12;const t=box(.017,.024,.027,Math.cos(a)*radius,Math.sin(a)*radius,0,brass,gear);t.rotation.z=a-Math.PI/2;}
   for(let hole=0;hole<5;hole++){const a=hole*Math.PI*2/5;const h=cyl(.013,.004,Math.cos(a)*radius*.5,Math.sin(a)*radius*.5,.014,black,gear);h.rotation.x=Math.PI/2;}
@@ -89,6 +89,18 @@ export function createMechanicalConsole(clock,random=Math.random){
  for(let i=0;i<13;i++)for(const z of [-.35,.35])screw(-.69+i*.115,.296,z);
  for(let i=0;i<16;i++)box(.004,.075,.012,-.6+i*.08,-.24,.397,dark);
  const nameplate=box(.26,.045,.008,0,.235,.405,brass);nameplate.name='黄铜铭牌';
+ // Lift the chassis bottom by 20 cm while holding its top and the tubes fixed.
+ const compressY=y=>y>=.27?y:-.2+(y+.4)*(.47/.67);
+ root.updateMatrixWorld(true);
+ root.traverse(object=>{
+  if(!object.isMesh)return;
+  const geometry=object.geometry.clone(),p=geometry.attributes.position,world=object.matrixWorld,inverse=world.clone().invert(),v=new THREE.Vector3();
+  let ancestor=object,gear=null;while(ancestor&&ancestor!==root){if(ancestor.userData.rigidGear){gear=ancestor;break;}ancestor=ancestor.parent;}
+  const gearY=gear?gear.getWorldPosition(new THREE.Vector3()).y:0;
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(world);v.y=gear?v.y+compressY(gearY)-gearY:compressY(v.y);v.applyMatrix4(inverse);p.setXYZ(i,v.x,v.y,v.z);}
+  geometry.computeVertexNormals();object.geometry=geometry;
+ });
+ root.userData.chassisReduction=.2;
  // Batch static details for mobile inspection; numeral visibility and needles remain live.
  root.updateMatrixWorld(true);const batches=new Map();root.traverse(o=>{if(!o.isMesh||o.userData.dynamic)return;if(!batches.has(o.material))batches.set(o.material,[]);batches.get(o.material).push(o);});
  for(const [material,objects]of batches){if(objects.length<2)continue;const copies=objects.map(o=>(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(o.matrixWorld));const geometry=mergeGeometries(copies,false);copies.forEach(g=>g.dispose());if(!geometry)continue;const combined=new THREE.Mesh(geometry,material);combined.name='机械钟静态细节';combined.castShadow=true;combined.receiveShadow=true;root.add(combined);objects.forEach(o=>o.removeFromParent());}

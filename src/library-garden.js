@@ -81,8 +81,8 @@ export function addLibraryGarden(root,{random,leafGeometries}){
   const bounds=new THREE.Box3().setFromObject(cluster);
   cluster.position.x+=side>0?Math.max(0,10-bounds.min.x):Math.min(0,-10-bounds.max.x);
  }
- const sun=new THREE.DirectionalLight(0xffd58a,2.1);sun.name='室外太阳光';sun.position.set(5.5,15,-10);sun.target.position.set(-1,-1,-7);
- sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-10,right:10,top:9,bottom:-6,near:.5,far:32});sun.shadow.bias=-.0003;sun.shadow.normalBias=.025;sun.shadow.radius=3;
+ const sun=new THREE.DirectionalLight(0xffd58a,2.1);sun.name='室外太阳光';sun.position.set(5.5,16.5,-10);sun.target.position.set(-1,-1,-7);
+ sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-17,right:17,top:18,bottom:-18,near:.5,far:55});sun.shadow.bias=-.0003;sun.shadow.normalBias=.012;sun.shadow.radius=3;
  garden.add(sun,sun.target);
  return garden;
 }

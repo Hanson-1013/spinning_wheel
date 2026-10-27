@@ -9,9 +9,11 @@ const selector=document.querySelector('#module'),status=document.querySelector('
 const mat=(color)=>new THREE.MeshStandardMaterial({color,roughness:.55});
 async function build(id){
  const group=new THREE.Group();const wood=mat(0x30261e),trim=mat(0x51412c),brass=new THREE.MeshStandardMaterial({color:0xa18449,metalness:.7,roughness:.35}),iron=mat(0x242b25);
- if(id==='towers'){group.add((await import('./retro-towers.js')).createRetroTowers());
- }else if(id==='desk'||id==='shelf'){
-  const furniture=await import('./library-furniture.js');group.add(id==='desk'?furniture.createLibraryDesk({},true):furniture.createScrollShelf());
+ if(id==='sofa'){group.add((await import('./library-armchair.js')).createLibraryArmchair());
+ }else if(id==='server'){group.add((await import('./library-server.js')).createLibraryServer());
+ }else if(id==='towers'){group.add((await import('./retro-towers.js')).createRetroTowers());
+ }else if(id==='desk'||id==='shelf'||id==='drawers'){
+  const furniture=await import('./library-furniture.js');group.add(id==='desk'?furniture.createLibraryDesk({},true):id==='drawers'?furniture.createDrawerCabinet():furniture.createScrollShelf());
  }else if(id==='piano'||id==='player'){
   const {addLibraryInstruments}=await import('./library-instruments.js');addLibraryInstruments(group,{walnut:wood,trim,brass,iron});
   const chosen=group.children.find(o=>o.name.includes(id==='piano'?'立式钢琴':'半球音乐播放器'));

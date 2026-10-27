@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {addNixieStand} from './nixie-display-stand.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createMechanicalConsole} from './mechanical-clock-console.js';
 
@@ -84,5 +85,5 @@ export function createNixieClock(random=Math.random){
 
 // Shared complete assembly for the library and the lightweight module viewer.
 export function createNixieConsole(random=Math.random,materials={}){
- return createMechanicalConsole(createNixieClock(random),random);
+ return addNixieStand(createMechanicalConsole(createNixieClock(random),random));
 }

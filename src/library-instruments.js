@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {createLibraryArmchair} from './library-armchair.js';
 
 export function addLibraryInstruments(root,{walnut,trim,brass,iron}){
  const ivory=new THREE.MeshStandardMaterial({color:0xc4bda2,roughness:.6});
@@ -79,7 +80,8 @@ export function addLibraryInstruments(root,{walnut,trim,brass,iron}){
  drapeGeometry.computeVertexNormals();
  const drapeMaterial=new THREE.MeshPhysicalMaterial({color:0x872b42,roughness:.88,side:THREE.DoubleSide,sheen:.65,sheenColor:0xb34c5c,sheenRoughness:.85});
  const pianoDrape=new THREE.Mesh(drapeGeometry,drapeMaterial);pianoDrape.name='钢琴左侧 · 石榴红垂布';pianoDrape.castShadow=true;pianoDrape.receiveShadow=true;piano.add(pianoDrape);
- const player=new THREE.Group();player.name='半球音乐播放器 · 弧壳号角与控制面板';player.position.set(-5.4,-.98,-3.7);player.rotation.y=Math.PI/4;root.add(player);
+ const armchair=createLibraryArmchair();armchair.position.set(-6.4,-2.395,-5.08);armchair.rotation.y=Math.PI/6;root.add(armchair);
+ const player=new THREE.Group();player.name='半球音乐播放器 · 弧壳号角与控制面板';player.position.set(-5.4,-.98,-3.1);player.rotation.y=Math.PI/4;root.add(player);
  const shellMaterial=new THREE.MeshPhysicalMaterial({color:0x5d5140,metalness:.45,roughness:.4,clearcoat:.15});
  const enamel=new THREE.MeshPhysicalMaterial({color:0x54756b,roughness:.48,clearcoat:.12});
  const back=new THREE.Mesh(new THREE.SphereGeometry(.57,48,28,Math.PI,Math.PI),shellMaterial);player.add(back);

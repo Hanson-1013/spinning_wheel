@@ -62,21 +62,22 @@ export function addTallTropicalPlants(garden,random){
 }
 
 export function createIndoorAreca(random=Math.random){
- const plant=new THREE.Group();plant.name='室内小型散尾葵 · 浓密羽状叶';
+ const plant=new THREE.Group();plant.name='室内散尾葵 · 上小下大三层羽状叶';
  const green=new THREE.MeshPhysicalMaterial({color:0x12392b,side:THREE.DoubleSide,roughness:.48,clearcoat:.2});
  green.userData.foliage=true;
  const stem=new THREE.MeshStandardMaterial({color:0x687343,roughness:.7});
  const blade=curvedBlade(.018,1,.17);
  for(let cane=0;cane<7;cane++){
-  const angle=cane*2.4,h=.65+random()*.65,base=new THREE.Vector3(Math.cos(angle)*.12,.4,Math.sin(angle)*.12),top=base.clone().add(new THREE.Vector3(Math.cos(angle)*.12,h,Math.sin(angle)*.12));
+  const tier=cane<3?0:cane<5?1:2;
+  const angle=cane*2.4,h=[.43,.78,1.17][tier]+random()*.12,base=new THREE.Vector3(Math.cos(angle)*.12,.4,Math.sin(angle)*.12),top=base.clone().add(new THREE.Vector3(Math.cos(angle)*.12,h,Math.sin(angle)*.12));
   stalk(plant,new THREE.LineCurve3(base,top),.009,stem);
   for(let f=0;f<5;f++){
-   const a=f*Math.PI*2/5+angle,out=new THREE.Vector3(Math.cos(a),0,Math.sin(a)),side=new THREE.Vector3(-Math.sin(a),0,Math.cos(a)),length=.55+random()*.45;
-   const curve=new THREE.CubicBezierCurve3(top,top.clone().add(new THREE.Vector3(0,.35,0)),top.clone().addScaledVector(out,length*.8).add(new THREE.Vector3(0,.22,0)),top.clone().addScaledVector(out,length).add(new THREE.Vector3(0,-.3,0)));
+   const a=f*Math.PI*2/5+angle,out=new THREE.Vector3(Math.cos(a),0,Math.sin(a)),side=new THREE.Vector3(-Math.sin(a),0,Math.cos(a)),length=[.94,.72,.43][tier]+random()*.1;
+   const curve=new THREE.CubicBezierCurve3(top,top.clone().add(new THREE.Vector3(0,[.18,.25,.3][tier],0)),top.clone().addScaledVector(out,length*.8).add(new THREE.Vector3(0,[.1,.16,.23][tier],0)),top.clone().addScaledVector(out,length).add(new THREE.Vector3(0,[-.24,-.2,-.13][tier],0)));
    stalk(plant,curve,.004,stem);
    for(let j=1;j<16;j++)for(const sign of [-1,1]){
-    const t=j/17,leaf=new THREE.Mesh(blade,green),len=.08+.27*Math.sin(t*Math.PI);
-    leaf.position.copy(curve.getPoint(t));leaf.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),side.clone().multiplyScalar(sign).addScaledVector(out,.35).add(new THREE.Vector3(0,-.3,0)).normalize());leaf.scale.set(1,len,len);plant.add(leaf);
+    const t=j/17,leaf=new THREE.Mesh(blade,green),len=(.08+.27*Math.sin(t*Math.PI))*[1.18,.95,.67][tier];
+    leaf.position.copy(curve.getPoint(t));leaf.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),side.clone().multiplyScalar(sign).addScaledVector(out,.35).add(new THREE.Vector3(0,-.3,0)).normalize());leaf.scale.set([1.65,1.2,.78][tier],len,len);plant.add(leaf);
    }
   }
  }
