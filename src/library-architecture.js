@@ -1,3 +1,4 @@
+import {readLayout} from './poster-layout.js';
 import * as THREE from 'three';
 import {WINDOW_TRANSOMS,LIBRARY_CEILING_BOTTOM} from './library-window-layout.js';
 import {createLibraryFrame} from './library-props.js';
@@ -34,7 +35,7 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
   }
   return art;
  }
- const diagonalLength=Math.hypot(3,3)-.5;
+ const diagonalLength=Math.hypot(3,3)-1.2;
  const diagonalRun=diagonalLength/Math.SQRT2,sideStart=-6.3+diagonalRun;
  const sideLength=9.5-sideStart;
  for(const side of [-1,1]){
@@ -43,16 +44,37 @@ export function addChamferedArchitecture(root,{wood,trim,brass,iron,glass,sky}){
   box(wall,diagonalLength,.32,.4,0,5.96,.015,wood);box(wall,diagonalLength,.12,.42,0,5.72,.04,trim);
   box(wall,diagonalLength,.35,.4,0,-2.2,.02,wood);box(wall,diagonalLength,.055,.035,0,-1.99,.24,brass);
   // Raised panel borders frame the sunburst without replacing its solid wall.
-  for(const edge of [-1,1])box(wall,.035,7.3,.025,edge*1.57,1.9,.184,trim);
-  for(const y of [-1.73,5.53])box(wall,3.14,.035,.025,0,y,.184,trim);
-  const art=artwork();art.scale.setScalar(.82);art.position.set(0,2.12,.228);wall.add(art);
-  for(const [x,y]of [[-.65,4.7],[.65,-.7]]){
-   const additional=artwork(false);additional.name='斜墙新增挂画';additional.scale.setScalar(.48);additional.position.set(x,y,.23);wall.add(additional);
+  for(const edge of [-1,1])box(wall,.035,7.3,.025,edge*(diagonalLength/2-.3),1.9,.184,trim);
+  for(const y of [-1.73,5.53])box(wall,diagonalLength-.6,.035,.025,0,y,.184,trim);
+  for(const {id,x,y,w} of readLayout().filter(p=>p.side===side)){
+   const texture=new THREE.TextureLoader().load(import.meta.env.BASE_URL+`artworks/posters/poster-${String(id).padStart(2,'0')}.png`);
+   texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
+   // UV crop excludes the source preview's bottom reflection and surrounding margins.
+   if(id===1){texture.offset.set(11/287,1-438/499);texture.repeat.set(266/287,432/499);}
+   else{texture.offset.set(13/376,1-563/636);texture.repeat.set(340/376,553/636);}
+   const h=w*(id===1?432/266:553/340),poster=new THREE.Group();poster.name=`侧墙海报 ${id}`;poster.position.set(x,y,.235);poster.scale.setScalar(.78);wall.add(poster);
+   const frame=createLibraryFrame(w+.17,h+.17,wood,brass);poster.add(frame);
+   // Broad stepped outer moulding, matching the heavier antique frames in the reference.
+   const frameWood=wood.clone();frameWood.color.setHex(0x30271e);frameWood.roughness=.72;
+   const outerW=w+.29,outerH=h+.29;
+   for(const sign of [-1,1]){
+    const railH=new THREE.Mesh(new THREE.BoxGeometry(outerW,.095,.09),frameWood);railH.position.set(0,sign*(outerH/2-.0475),.012);poster.add(railH);
+    const railV=new THREE.Mesh(new THREE.BoxGeometry(.095,outerH-.19,.09),frameWood);railV.position.set(sign*(outerW/2-.0475),0,.012);poster.add(railV);
+    for(const axis of ['x','y']){const bead=new THREE.Mesh(new THREE.BoxGeometry(axis==='x'?outerW-.045:.018,axis==='y'?outerH-.045:.018,.016),trim);bead.position.set(axis==='y'?sign*(outerW/2-.025):0,axis==='x'?sign*(outerH/2-.025):0,.063);poster.add(bead);}
+   }
+   frame.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+   const mount=new THREE.Mesh(new THREE.PlaneGeometry(w+.018,h+.018),new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:1}));mount.position.z=.04;poster.add(mount);
+   const print=new THREE.Mesh(new THREE.PlaneGeometry(w-.16,h-.16),new THREE.MeshStandardMaterial({map:texture,color:0xffffff,roughness:.94,metalness:0}));print.position.z=.042;print.receiveShadow=true;poster.add(print);
   }
   for(const edge of [-1,1]){
-   const pillar=new THREE.Group();pillar.name='斜墙承重柱 · 密集嵌金线';pillar.position.set(edge*diagonalLength/2,0,.025);wall.add(pillar);
-   box(pillar,.76,8.5,.42,0,1.9,0,wood);
-   for(let line=0;line<26;line++)box(pillar,.008,7.85,.014,-.325+line*.026,1.9,.219,brass);
+   const pillar=new THREE.Group();pillar.name='斜墙承重柱 · 深色宽面与竖向黄铜饰条';pillar.position.set(edge*diagonalLength/2,0,.025);wall.add(pillar);
+   const pillarWood=wood.clone();pillarWood.color.setHex(0x242e26);pillarWood.roughness=.8;
+   box(pillar,.82,8.5,.46,0,1.9,0,pillarWood);
+   // Recessed panel with fewer, clearly separated brass ribs.
+   box(pillar,.69,6.5,.018,0,1.0,.239,trim);
+   box(pillar,.65,6.42,.022,0,1.0,.254,pillarWood);
+   for(let line=0;line<9;line++)box(pillar,.014,6.22,.018,-.288+line*.072,1.0,.275,brass);
+   for(const y of [-2.17,4.35]){box(pillar,.91,.11,.51,0,y,.015,pillarWood);box(pillar,.87,.018,.49,0,y+.065,.025,brass);}
    for(const y of [-2.19,5.98]){box(pillar,1.12,.18,.56,0,y,0,trim);box(pillar,1.02,.025,.51,0,y+.11,0,brass);}
   }
   const windows=new THREE.Group();windows.name=side===1?'右侧落地玻璃':'左侧落地玻璃';windows.position.set(side*(7+diagonalRun),0,(9.5+sideStart)/2);windows.rotation.y=-side*Math.PI/2;architecture.add(windows);

@@ -64,7 +64,7 @@ export function createMonsteraPlant(height,random,materials,leafGeometries,optio
  const stemMaterial=materials.stem,bladeMaterials=materials.leaves;
  const stemBase=new THREE.Vector3(0,.39,0),count=options.leafCount??(7+Math.floor(random()*4));
  for(let i=0;i<count;i++){
-  const a=i*2.399+random()*.3,juvenile=i<(options.leafCount?4:2),reach=height*(.19+random()*.18),rise=height*(juvenile?.28:options.leafCount?.3+random()*.5:.45+random()*.32);
+  const a=i*2.399+random()*.3,juvenile=i<(options.leafCount?4:2),reach=height*(.19+random()*.18),rise=Math.max(.1,height*(juvenile?.28:options.leafCount?.3+random()*.5:.45+random()*.32)-(options.stemHeightReduction??0));
   const outward=new THREE.Vector3(Math.cos(a),0,Math.sin(a));
   const end=outward.clone().multiplyScalar(reach);end.y=.4+rise;
   const curve=new THREE.CubicBezierCurve3(stemBase.clone(),new THREE.Vector3(0,.4+rise*.75,0),outward.clone().multiplyScalar(reach*.56).add(new THREE.Vector3(0,end.y+.24+reach*.3,0)),end);

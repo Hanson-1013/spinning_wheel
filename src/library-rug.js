@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export function createLibraryRug(){
- const root=new THREE.Group();root.name='酒红地毯 · 不规则多面体金线与钩边';root.position.set(1.8,-2.365,-2.35);root.scale.z=5.7/3.3;
+ const root=new THREE.Group();root.name='酒红地毯 · 不规则多面体金线与钩边';root.position.set(2.1,-2.365,-2.35);root.scale.z=5.7/3.3;
  const fabric=new THREE.MeshPhysicalMaterial({color:0x641f32,roughness:1,metalness:0,sheen:.3,sheenColor:0x7a3545,sheenRoughness:1});
  const gold=new THREE.MeshStandardMaterial({color:0xb89a59,roughness:.85,metalness:.1});
  const rug=new THREE.Mesh(new THREE.BoxGeometry(6,.026,3.3),fabric);root.add(rug);

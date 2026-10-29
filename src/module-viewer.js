@@ -37,6 +37,6 @@ async function load(){const id=++ticket;status.textContent='正在加载模组�
  const url=new URL(location.href);url.searchParams.set('module',selector.value);history.replaceState(null,'',url);status.textContent='单指旋转 · 双指缩放/平移 · 仅加载当前模组';
  }catch(error){console.error(error);status.textContent='加载失败，请切换模组或刷新重试';}}
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}addEventListener('resize',resize);resize();
-selector.onchange=load;document.querySelector('#reset').onclick=()=>fit();document.querySelector('#rotate').onclick=e=>{controls.autoRotate=!controls.autoRotate;e.target.textContent=controls.autoRotate?'停止转动':'自动转动';};
+selector.onchange=()=>{if(selector.value==='wall')location.href='/test/modules?module=wall';else load();};document.querySelector('#reset').onclick=()=>fit();document.querySelector('#rotate').onclick=e=>{controls.autoRotate=!controls.autoRotate;e.target.textContent=controls.autoRotate?'停止转动':'自动转动';};
 const initial=new URLSearchParams(location.search).get('module');if([...selector.options].some(o=>o.value===initial))selector.value=initial;load();
 const clock=new THREE.Clock();renderer.setAnimationLoop(()=>{const time=clock.getElapsedTime();current?.traverse(o=>o.userData.update?.(time));controls.update();renderer.render(scene,camera);});

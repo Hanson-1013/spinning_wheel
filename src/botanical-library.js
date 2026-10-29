@@ -75,7 +75,7 @@ export function createBotanicalLibrary(){
  for(const side of [-1,1])for(let bay=side===-1?-1:0;bay<3;bay++){
   const unit=new THREE.Group();unit.name='侧面落地窗前书柜';unit.userData.shelfLevels=4;unit.userData.cabinetSide=side;unit.userData.bay=bay;unit.position.set(side*6.9,-2.35,-1+bay*2.48+(side===-1?1.24:0));unit.rotation.y=-side*Math.PI/2;
   if(side===-1&&bay===-1){
-   const run=(Math.hypot(3,3)-.5)/Math.SQRT2,inset=.78/Math.SQRT2;
+   const run=(Math.hypot(3,3)-1.2)/Math.SQRT2,inset=.78/Math.SQRT2;
    unit.position.set(-(7+run/2)+inset,-2.35,-6.3+run/2+inset);unit.rotation.y=Math.PI/4;unit.userData.againstSideWall=true;
   }
   root.add(unit);
@@ -84,7 +84,18 @@ export function createBotanicalLibrary(){
   box(2.55,.19,.95,0,3.6,0,cabinetTrim,unit);
   box(2.5,.15,.95,0,.08,0,cabinetWood,unit);
   for(const y of [3.42,3.51])box(2.47,.045,.9,0,y,.02,cabinetTrim,unit);
-  for(const x of [-1.08,1.08]){box(.055,3.15,.04,x,1.85,.43,cabinetGold,unit);}
+  for(const x of [-1.13,1.13]){
+   const column=new THREE.Group();column.name='书柜侧边 · 凸出凹槽罗马柱';column.position.set(x,0,.43);unit.add(column);
+   box(.27,.11,.28,0,.17,0,cabinetTrim,column);box(.23,.065,.24,0,.257,0,cabinetWood,column);
+   const shaftGeometry=new THREE.CylinderGeometry(.088,.108,2.91,64,12),positions=shaftGeometry.attributes.position;
+   for(let i=0;i<positions.count;i++){const px=positions.getX(i),pz=positions.getZ(i),angle=Math.atan2(pz,px),flute=1-.105*(.5+.5*Math.cos(angle*16));positions.setX(i,px*flute);positions.setZ(i,pz*flute);}
+   shaftGeometry.computeVertexNormals();const shaft=new THREE.Mesh(shaftGeometry,cabinetTrim);shaft.position.y=1.79;column.add(shaft);
+   for(const [radius,height,y,material]of [[.13,.07,.315,cabinetTrim],[.115,.022,.36,cabinetGold],[.104,.045,3.225,cabinetGold],[.14,.085,3.29,cabinetTrim],[.157,.055,3.36,cabinetWood]]){
+    const ring=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,height,32),material);ring.position.y=y;column.add(ring);
+   }
+   box(.31,.085,.31,0,3.425,0,cabinetTrim,column);box(.315,.014,.315,0,3.47,0,cabinetGold,column);
+   column.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  }
   // Heavy stepped cornice and shallow bowed moldings echo the reference crown.
   const crown=new THREE.Group();crown.name='书柜顶部 · 叠层挑檐与弧形饰线';unit.add(crown);
   box(2.39,.32,.15,0,3.31,.4,cabinetWood,crown);
@@ -146,7 +157,7 @@ export function createBotanicalLibrary(){
   else{box(w*.82,.03,.28,x,y-h*.5-.02,z-.08,walnut);}
   return group;}
 
- frame(-3.1,.85,-5.8,1.1,1.6,.05);frame(3.4,.75,-5.8,.95,1.55,-.03);frame(-1.1,-.9,-3.4,.7,1.1,-.15);frame(4.35,-1.4,-4.1,.9,1.4,.1);
+ frame(-1.1,-.9,-3.4,.7,1.1,-.15);frame(4.35,-1.4,-4.1,.9,1.4,.1);
  for(const x of [-5.8,5.8])for(const z of [-4.3,-1.9,.5]){
   const pendant=new THREE.Group();pendant.name='纵向排列吊灯';pendant.position.set(x,0,z);root.add(pendant);
   cylinder(.012,.012,3.57,0,3.265,0,iron,pendant);

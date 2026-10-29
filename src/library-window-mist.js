@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {LIBRARY_FLOOR_Y,LIBRARY_CEILING_BOTTOM} from './library-window-layout.js';
 
 // Thin drifting mist occupies the exterior gap, rather than fogging the room.
 export function addWindowMist(root){
@@ -14,17 +15,17 @@ export function addWindowMist(root){
    void main(){
     vec2 p=mistUv*vec2(5.,3.);p.x-=mistTime*.022;
     float cloud=noise(p)*.65+noise(p*2.3+mistTime*.012)*.35;
-    float edge=smoothstep(0.,.08,mistUv.x)*smoothstep(0.,.08,1.-mistUv.x)*smoothstep(0.,.12,mistUv.y)*smoothstep(0.,.15,1.-mistUv.y);
+    float edge=smoothstep(0.,.08,mistUv.x)*smoothstep(0.,.08,1.-mistUv.x)*smoothstep(0.,.12,mistUv.y)*(1.-smoothstep(.35,1.,mistUv.y));
     float density=(.055+.16*cloud)*edge*mix(1.,.5,mistUv.y);
     gl_FragColor=vec4(mix(vec3(.66,.75,.66),vec3(.86,.83,.69),mistUv.y),density);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
    }`
  });
- const mist=new THREE.Group();mist.name='玻璃外侧 · 缓慢流动薄雾';root.add(mist);
- function plane(width,x,z,angle){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(width,7.7),material);mesh.position.set(x,1.4,z);mesh.rotation.y=angle;mesh.userData.dynamic=true;mesh.renderOrder=1;mist.add(mesh);}
- plane(14,0,-6.55,0);
- for(const side of [-1,1])plane(13.15,side*9.96,2.92,-side*Math.PI/2);
+ const mist=new THREE.Group();mist.name='前后排植物之间 · 渐隐薄雾';root.add(mist);
+ function plane(width,x,z,angle){const height=(LIBRARY_CEILING_BOTTOM-LIBRARY_FLOOR_Y)/2+1;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(width,height),material);mesh.position.set(x,LIBRARY_FLOOR_Y+height/2,z);mesh.rotation.y=angle;mesh.userData.dynamic=true;mesh.renderOrder=1;mist.add(mesh);}
+ plane(19,0,-9.6,0);
+ for(const side of [-1,1])plane(16,side*12.5,2.6757,-side*Math.PI/2);
  const previous=root.userData.update;root.userData.update=t=>{previous?.(t);time.value=t;};
  return mist;
 }

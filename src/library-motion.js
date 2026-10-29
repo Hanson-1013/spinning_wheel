@@ -25,7 +25,7 @@ export function setupLibraryMotion(root){
     #endif
     windPosition=modelMatrix*windPosition;
     float phase=windPosition.x*.85+windPosition.z*.63;
-    float breeze=sin(libraryWindTime*.8+phase)*.039+sin(libraryWindTime*1.31+phase*1.6)*.0135;
+    float breeze=sin(libraryWindTime*.8+phase)*.156+sin(libraryWindTime*1.31+phase*1.6)*.054;
     vec3 windWorld=vec3(breeze,0.,breeze*.45)*smoothstep(-2.2,1.5,windPosition.y);
     // modelMatrix has unit scale for the merged foliage and instanced leaf batches.
     vec4 mvPosition=viewMatrix*(windPosition+vec4(windWorld,0.));
@@ -35,6 +35,6 @@ export function setupLibraryMotion(root){
   const key=cache();material.customProgramCacheKey=()=>key+'-library-breeze-v1';material.needsUpdate=true;
  }
  const previous=root.userData.update;
- root.userData.update=t=>{previous?.(t);time.value=t;for(const {pivot,phase} of frames){pivot.rotation.z=Math.sin(t*.65+phase)*.027;pivot.rotation.y=Math.sin(t*.51+phase)*.0375;}};
+ root.userData.update=t=>{previous?.(t);time.value=t;for(const {pivot,phase} of frames){pivot.rotation.z=Math.sin(t*.65+phase)*.108;pivot.rotation.y=Math.sin(t*.51+phase)*.15;}};
  return {materials:materials.size,frames:frames.length};
 }

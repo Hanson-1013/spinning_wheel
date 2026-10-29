@@ -47,18 +47,23 @@ export function addLibraryGarden(root,{random,leafGeometries}){
  }
  const materials=createMonsteraMaterials();
  for(let row=0;row<2;row++)for(let i=0;i<12;i++){
-  const plant=createMonsteraPlant(2.6+random()*1.4,random,materials,leafGeometries,{leafCount:12,leafWidth:1.2});
+  const plant=createMonsteraPlant(2.6+random()*1.4,random,materials,leafGeometries,{leafCount:12,leafWidth:1.2,stemHeightReduction:.5});
   plant.position.set(-8.1+i*1.45+(random()-.5)*.3,-2.35,-7.15-row*1.1-random()*.25);
-  plant.rotation.y=random()*.7;plant.name='窗外龟背竹 · 玻璃外侧';
+  plant.rotation.y=random()*.7;plant.name='窗外龟背竹 · 玻璃外侧';plant.userData.gardenRow=row;
+  if(row===0)plant.scale.z=.45;
   // Fit the entire curved plant, not merely its root, behind the window plane.
   plant.updateMatrixWorld(true);
   const bounds=new THREE.Box3().setFromObject(plant);
-  if(bounds.max.z> -6.8)plant.position.z-=bounds.max.z+6.8;
+  const frontLimit=row===0?-6.8:-10.4;
+  plant.position.z+=frontLimit-bounds.max.z;
   plant.updateMatrixWorld(true);
   plant.userData.frontBoundary=new THREE.Box3().setFromObject(plant).max.z;
   plant.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});garden.add(plant);
  }
  addTallTropicalPlants(garden,random);
+ // Taller foliage is the rear row, separated from the foreground by the mist plane.
+ for(const plant of garden.children.filter(o=>o.name.startsWith('窗外天堂鸟')||o.name.startsWith('窗外散尾葵'))){plant.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(plant);if(b.max.z>-10.4)plant.position.z-=b.max.z+10.4;}
+
  // Repeat the same three species outside both side windows, without copying lights or ruins.
  const nearPlants=garden.children.filter(object=>object.name==='窗外龟背竹 · 玻璃外侧');
  const tallPlants=garden.children.filter(object=>object.name==='窗外天堂鸟 · 长茎宽叶'||object.name==='窗外散尾葵 · 弯垂羽状叶');
@@ -79,7 +84,7 @@ export function addLibraryGarden(root,{random,leafGeometries}){
   extraTemplates.forEach((source,j)=>{const plant=source.clone(true);plant.position.set((j-1)*.65,-2.35,-j*.35);cluster.add(plant);});
   garden.add(cluster);cluster.updateWorldMatrix(true,true);
   const bounds=new THREE.Box3().setFromObject(cluster);
-  cluster.position.x+=side>0?Math.max(0,10-bounds.min.x):Math.min(0,-10-bounds.max.x);
+  cluster.position.x+=side>0?Math.max(0,13.5-bounds.min.x):Math.min(0,-13.5-bounds.max.x);
  }
  const sun=new THREE.DirectionalLight(0xffd58a,2.1);sun.name='室外太阳光';sun.position.set(5.5,16.5,-10);sun.target.position.set(-1,-1,-7);
  sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-17,right:17,top:18,bottom:-18,near:.5,far:55});sun.shadow.bias=-.0003;sun.shadow.normalBias=.012;sun.shadow.radius=3;

@@ -1,3 +1,4 @@
+import {createRenderStyles} from './render-styles.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -29,6 +30,7 @@ renderer.setPixelRatio(2*Math.min(devicePixelRatio,1.6));renderer.setSize(innerW
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x0b151d,.048);
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,100);camera.position.set(0,1.3,11.8);camera.lookAt(0,.45,0);
 const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.7,.65,.72);composer.addPass(bloom);
+const renderStyles=document.body.dataset.page==='developer'?createRenderStyles(composer,renderer):null;
 scene.add(new THREE.HemisphereLight(0xa4cfde,0x17120e,1.1));
 const key=new THREE.SpotLight(0xd6edff,130,28,.65,.8,1.4);key.position.set(-3,8,3);scene.add(key);key.target.position.set(0,0,0);scene.add(key.target);
 const glow=new THREE.PointLight(0xa5d6e9,13,8,1.5);glow.position.set(0,.6,.4);scene.add(glow);
@@ -121,7 +123,7 @@ const cameraRig={
  reset(){manualCamera=null;cameraPull=0;cameraRestartHold=false;resizeStage();}
 };
 let developerTools=null;
-if(document.body.dataset.page==='developer')import('./developer-tools.js').then(({setupDeveloperTools})=>developerTools=setupDeveloperTools({scene,wheel:spinningWheel.root,backdropObjects,canvas:renderer.domElement,renderer,water,cameraRig,performanceStage})).catch(console.error);
+if(document.body.dataset.page==='developer')import('./developer-tools.js').then(({setupDeveloperTools})=>developerTools=setupDeveloperTools({scene,wheel:spinningWheel.root,backdropObjects,canvas:renderer.domElement,renderer,water,cameraRig,performanceStage,renderStyles})).catch(console.error);
 new ResizeObserver(resizeStage).observe(host);
 window.addEventListener('resize',resizeStage);resizeStage();
 let firstFrame=true;

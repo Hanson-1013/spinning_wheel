@@ -4,7 +4,7 @@ import './developer.css';
 import {setupCameraTools} from './developer-camera.js';
 import {createBotanicalLibrary} from './botanical-library.js';
 
-export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer,water,cameraRig,performanceStage}){
+export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer,water,cameraRig,performanceStage,renderStyles}){
  const panel=document.createElement('section');panel.className='developer-panel';panel.setAttribute('aria-label','素材试验台');
  panel.innerHTML=`<div class="dev-heading"><strong>素材试验台</strong><button id="dev-collapse" aria-expanded="true">收起</button></div>
  <div id="dev-content"><p>独立开发页面 · <a href="/">返回展示首页</a> · <a href="/test/modules">手机单模组查看</a></p>
@@ -13,6 +13,9 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
  <div class="dev-actions"><button id="dev-show-all">显示全部素材</button><button id="dev-hide-all">隐藏全部素材</button></div>
  <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option></select><p>植物书房采用三维建模，可与纺车、水面及导入素材共同呈现。</p>
+ <h2>渲染风格</h2><label for="dev-render-style">画面风格</label><select id="dev-render-style"><option value="original">原有写实效果</option><option value="impression">印象派油画 · 柔和笔触</option><option value="blocks">平面色块油画 · 概括色阶</option><option value="engraving">复古版画 · 单色排线</option></select>
+ <label for="dev-style-strength">风格强度 <output id="dev-style-strength-value">80%</output></label><input id="dev-style-strength" type="range" min="0" max="100" value="80">
+ <label for="dev-style-brush">笔触大小 <output id="dev-style-brush-value">4</output></label><input id="dev-style-brush" type="range" min="1" max="10" step="0.5" value="4">
  <h2>室内雾气</h2><div class="dev-row"><span>室内轻雾</span><button id="dev-mist-toggle" aria-pressed="true">隐藏雾气</button></div>
  <label for="dev-mist-density">浓度 <output id="dev-mist-value">16%</output></label><input id="dev-mist-density" type="range" min="0" max="100" step="1" value="16" aria-label="室内雾气浓度">
  <div id="dev-camera"></div><h2>场景内容</h2><div id="dev-builtins"></div><h2>导入素材</h2><div id="dev-assets"></div></div>`;
@@ -25,6 +28,9 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  function applyMist(){const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible);api.setDensity(find('dev-mist-density').value);}}
  find('dev-mist-toggle').onclick=()=>{mistVisible=!mistVisible;find('dev-mist-toggle').textContent=mistVisible?'隐藏雾气':'显示雾气';find('dev-mist-toggle').setAttribute('aria-pressed',String(mistVisible));applyMist();};
  find('dev-mist-density').oninput=()=>{find('dev-mist-value').textContent=find('dev-mist-density').value+'%';applyMist();};
+ find('dev-render-style').onchange=e=>renderStyles?.setPreset(e.target.value);
+ find('dev-style-strength').oninput=e=>{find('dev-style-strength-value').textContent=e.target.value+'%';renderStyles?.setStrength(e.target.value/100);};
+ find('dev-style-brush').oninput=e=>{find('dev-style-brush-value').textContent=e.target.value;renderStyles?.setBrush(e.target.value);};
  const originalVisibility=backdropObjects.map(object=>object.visible);
  find('dev-backdrop').onchange=e=>{
   const useLibrary=e.target.value==='library';

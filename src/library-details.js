@@ -26,7 +26,7 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
   ];
   for(const [offset,y,z,w,h,yaw] of frameLayout){
    // Same unscaled frame profile as the original central frames (0.065 outer rim).
-   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(5.55+offset-w),y-.6,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
+   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(5.55+offset-w),y-1.1,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
    // Suspension points follow the rotated frame so their fine wires stay attached.
    frame.updateMatrixWorld(true);
    for(const edge of [-1,1]){
