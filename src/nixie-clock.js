@@ -62,7 +62,7 @@ export function createNixieClock(random=Math.random){
    const hours=Math.floor(random()*24),minutes=Math.floor(random()*60);
    target=[Math.floor(hours/10),hours%10,Math.floor(minutes/10),minutes%10];changedAt=time;
    const duration=.48+random()*.18;
-   settleAt=values.map((_,i)=>time+duration+i*.085+random()*.055);
+   settleAt=values.map(()=>time+duration);
    nextFlicker=[time,time,time,time];
    nextChange=Math.max(...settleAt)+1.4+random()*2;
   }
@@ -71,7 +71,7 @@ export function createNixieClock(random=Math.random){
    else if(time>=nextFlicker[i]){
     // Always show a different numeral at each flicker; timing is frame-rate independent.
     values[i]=(values[i]+1+Math.floor(random()*9))%10;
-    nextFlicker[i]=time+.035+random()*.025;
+    nextFlicker[i]=time+.016+random()*.009;
    }
    for(let d=0;d<10;d++){
     digits[i][d].visible=values[i]===d;

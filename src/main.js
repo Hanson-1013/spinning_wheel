@@ -132,6 +132,7 @@ if(!paused){time+=dt;water.update(dt,time);spinningWheel.update(dt,elapsed);upda
 const state=spinningWheel.getState();
 setReplayVisible(state.complete&&state.after>=2.1&&gathering.isFinished());
 document.querySelector('#status').textContent=state.complete?'织光完成':Math.floor(state.progress*100)+'% / 织光进度';
+renderStyles?.update(now/1000);
 try{composer.render();}catch(error){showStartupError(error);return;}
 if(firstFrame){firstFrame=false;finishLoading();}
 requestAnimationFrame(animate);

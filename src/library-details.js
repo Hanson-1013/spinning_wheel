@@ -51,15 +51,16 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
  const deskBooks=createDeskBooksAndScrolls({walnut,trim,paper});deskBooks.position.set(0,-2.35,-3.6);root.add(deskBooks);
  const radio=createBotanicalRadio();radio.position.set(.24,-1.309,-3.9);root.add(radio);
  const deskLamp=createDeskLamp();deskLamp.position.set(1.34,-1.309,-3.93);root.add(deskLamp);
- // Enlarged floor-standing frame, displaying the supplied artwork without cropping.
+ // Original floor-standing frame proportions; image fills the opening with centered side cropping.
  const painting=new THREE.Group();painting.name='书桌前落地画框 · 用户插画';painting.position.set(1.7,0,-3);painting.rotation.set(-.04,-.12,0);painting.scale.setScalar(1.25);root.add(painting);
- box(2.15,1.5,.07,0,0,0,leather,painting);box(2.01,1.35,.018,0,0,.045,mat(0x292d2b),painting);
+ const paintingWidth=2.15,paintingHeight=1.5,imageWidth=paintingWidth-.14,imageHeight=paintingHeight-.14;
+ box(paintingWidth,paintingHeight,.07,0,0,0,leather,painting);box(imageWidth,imageHeight,.018,0,0,.045,mat(0x292d2b),painting);
  const artworkMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.92,metalness:0});
  if(typeof document!=='undefined'){
-  const texture=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'artworks/desk-framed-art.jpg');texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;artworkMaterial.map=texture;
+  const texture=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'artworks/desk-framed-art.jpg',map=>{const sourceAspect=map.image.width/map.image.height,targetAspect=imageWidth/imageHeight;if(sourceAspect<targetAspect){const repeat=sourceAspect/targetAspect;map.repeat.y=repeat;map.offset.y=(1-repeat)/2;}else{const repeat=targetAspect/sourceAspect;map.repeat.x=repeat;map.offset.x=(1-repeat)/2;}});texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;artworkMaterial.map=texture;
  }
- const artwork=new THREE.Mesh(new THREE.PlaneGeometry(2.01,2.01*1289/2148),artworkMaterial);artwork.position.z=.058;painting.add(artwork);
- const paintingFrame=createLibraryFrame(2.15,1.5,trim,brass);paintingFrame.position.z=.045;painting.add(paintingFrame);
+ const artwork=new THREE.Mesh(new THREE.PlaneGeometry(imageWidth,imageHeight),artworkMaterial);artwork.position.z=.058;painting.add(artwork);
+ const paintingFrame=createLibraryFrame(paintingWidth,paintingHeight,trim,brass);paintingFrame.position.z=.045;painting.add(paintingFrame);
  painting.updateWorldMatrix(true,true);const artworkBounds=new THREE.Box3().setFromObject(painting);painting.position.y+=-2.345-artworkBounds.min.y;
  painting.userData.frameScale=1.25;painting.userData.floorY=-2.345;
  for(let i=0;i<4;i++){
