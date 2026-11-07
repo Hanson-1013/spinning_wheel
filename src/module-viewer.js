@@ -9,7 +9,8 @@ const selector=document.querySelector('#module'),status=document.querySelector('
 const mat=(color)=>new THREE.MeshStandardMaterial({color,roughness:.55});
 async function build(id){
  const group=new THREE.Group();const wood=mat(0x30261e),trim=mat(0x51412c),brass=new THREE.MeshStandardMaterial({color:0xa18449,metalness:.7,roughness:.35}),iron=mat(0x242b25);
- if(id==='sofa'){group.add((await import('./library-armchair.js')).createLibraryArmchair());
+ if(id==='art-corner'){group.add((await import('./library-art-corner.js')).createLibraryArtCorner());
+ }else if(id==='sofa'){group.add((await import('./library-armchair.js')).createLibraryArmchair());
  }else if(id==='server'){group.add((await import('./library-server.js')).createLibraryServer());
  }else if(id==='towers'){group.add((await import('./retro-towers.js')).createRetroTowers());
  }else if(id==='desk'||id==='shelf'||id==='drawers'){

@@ -10,7 +10,6 @@ import {Reflector} from 'three/addons/objects/Reflector.js';
 import {createMonsteraLeaf,createMonsteraPlant,createMonsteraMaterials} from './monstera.js';
 import {addLibraryGarden} from './library-garden.js';
 import {addChamferedArchitecture} from './library-architecture.js';
-import {createHangingGarden} from './hanging-garden.js';
 import {addLibraryDetails} from './library-details.js';
 import {createLibraryPot,createLibraryFrame} from './library-props.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
@@ -20,7 +19,7 @@ export function createBotanicalLibrary(){
  const root=new THREE.Group();root.name='植物书房 · 三维布景';
  let seed=182;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const material=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.84,...extra});
- const walnut=material(0x30271e),trim=material(0x51412c),iron=material(0x242b25,{metalness:.55,roughness:.48}),stone=new THREE.MeshPhysicalMaterial({color:0x4e4941,roughness:.47,metalness:0,clearcoat:.38,clearcoatRoughness:.43}),brass=material(0x8b7042,{metalness:.65,roughness:.4});
+ const walnut=material(0x30271e),trim=material(0x51412c),iron=material(0x242b25,{metalness:.55,roughness:.48}),stone=new THREE.MeshPhysicalMaterial({color:0x453728,roughness:.47,metalness:0,clearcoat:.38,clearcoatRoughness:.43}),brass=material(0x8b7042,{metalness:.65,roughness:.4});
  const boxGeometry=new THREE.BoxGeometry(1,1,1);
  function box(w,h,d,x,y,z,mat=walnut,parent=root){const o=new THREE.Mesh(boxGeometry,mat);o.scale.set(w,h,d);o.position.set(x,y,z);o.castShadow=!!mat.isMeshStandardMaterial&&!mat.transparent;o.receiveShadow=true;parent.add(o);return o;}
  function cylinder(r1,r2,h,x,y,z,mat=trim,parent=root){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),mat);o.position.set(x,y,z);parent.add(o);return o;}
@@ -43,7 +42,7 @@ export function createBotanicalLibrary(){
  floorReflection.material.transparent=true;floorReflection.material.depthWrite=false;
  floorReflection.material.fragmentShader=floorReflection.material.fragmentShader.replace('gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );','gl_FragColor = vec4( blendOverlay( base.rgb, color ), 0.11 );');
  root.add(floorReflection);
- box(14.2,1.1,.3,0,-1.9,-6.4);box(14.2,.35,.4,0,5.5,-6.4);box(20.4,.25,17,0,5.5,.5);
+ box(14.2,1.1,.3,0,-1.9,-6.4);box(14.2,.35,.4,0,5.5,-6.4);box(20.4,.25,17,0,6,.5);
 
  const glass=new THREE.MeshPhysicalMaterial({color:0x819582,roughness:.55,metalness:.05,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide});
  const sky=new THREE.ShaderMaterial({
@@ -145,7 +144,6 @@ export function createBotanicalLibrary(){
    plant(side*6,-2.35,1,1.1,true,{potScale:.8});
   }
  }
- const hangingGarden=createHangingGarden();hangingGarden.position.y=-.3;root.add(hangingGarden);
  const rearFurnitureStart=new Set(root.children);
  // A low antique desk, drawers, chair, and open frames sit behind the water stage.
  const desk=createLibraryDesk({walnut,trim,brass});desk.position.set(0,-2.35,-3.6);root.add(desk);

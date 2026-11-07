@@ -1,3 +1,5 @@
+import {createLibraryArtCorner} from './library-art-corner.js';
+import {createLibraryCoatRack} from './library-coat-rack.js';
 import * as THREE from 'three';
 import {createLibraryServer} from './library-server.js';
 import {createRetroTowers} from './retro-towers.js';
@@ -26,7 +28,7 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
   ];
   for(const [offset,y,z,w,h,yaw] of frameLayout){
    // Same unscaled frame profile as the original central frames (0.065 outer rim).
-   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(5.55+offset-w),y-1.1,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
+   const frame=createLibraryFrame(w,h,trim,brass);frame.name='错落悬挂空画框';frame.userData.frameHeight=h;frame.position.set(side*(5.55+offset-w),y-1.6,z);frame.rotation.set(0,side*yaw,side*offset*.08);root.add(frame);
    // Suspension points follow the rotated frame so their fine wires stay attached.
    frame.updateMatrixWorld(true);
    for(const edge of [-1,1]){
@@ -37,7 +39,7 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
 
  }
  // Ceiling beams and diagonal sun streaks across the floor.
- for(let i=0;i<10;i++)box(.14,.25,15,-9+i*2,5.22,.5,trim);
+ for(let i=0;i<10;i++)box(.14,.25,15,-9+i*2,5.72,.5,trim);
  // Burgundy textile with gold polyhedral embroidery and hooked border trim.
  root.add(createLibraryRug());
  const rearPropsStart=new Set(root.children);
@@ -74,6 +76,8 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
   for(const child of [...cabinet.children])if(child.name==='柜顶书本'||child.name==='柜顶绿植')cabinet.remove(child);
   cabinet.name='右侧书架前独立抽屉柜';cabinet.position.set(3.474,-2.395,1.15+(i-.5)*.712);cabinet.rotation.y=-Math.PI/2;root.add(cabinet);
  }
+ const coatRack=createLibraryCoatRack();coatRack.position.set(4.05,-2.395,-.68);root.add(coatRack);
+ const artCorner=createLibraryArtCorner();artCorner.position.set(5.2,-2.395,-4.95);artCorner.rotation.y=-Math.PI/4;root.add(artCorner);
  const silkGroup=new THREE.Group();silkGroup.name='双抽屉柜上 · 珊瑚色斜搭丝绸';silkGroup.position.set(3.474,-2.395,1.15);root.add(silkGroup);
  const silkMaterial=new THREE.MeshPhysicalMaterial({color:0xc7796b,roughness:.42,metalness:0,sheen:.85,sheenColor:0xf1b1a0,sheenRoughness:.52,side:THREE.DoubleSide});
  const silkGeometry=new THREE.PlaneGeometry(.85,1.42,70,90),silkPositions=silkGeometry.attributes.position;
@@ -109,7 +113,7 @@ export function addLibraryDetails(root,{box,cylinder,walnut,trim,iron,brass,ston
  // Procedural surface detail: worn timber grain, book spine tooling, leaf veins.
  if(typeof document!=='undefined'){
   function texture(w,h,paint){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const c=canvas.getContext('2d');paint(c,w,h);const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;return map;}
-  stone.color.setHex(0x4e4941);
+  stone.color.setHex(0x453728);
   stone.map=texture(128,128,(c,w,h)=>{c.fillStyle='#b4aca0';c.fillRect(0,0,w,h);for(let i=0;i<16000;i++){const tone=100+Math.floor(random()*80);c.fillStyle=`rgba(${tone},${tone},${tone},.16)`;c.fillRect(random()*w,random()*h,2,2);}});stone.map.wrapS=stone.map.wrapT=THREE.RepeatWrapping;stone.map.repeat.set(1,1);stone.bumpMap=stone.map;stone.bumpScale=.0018;stone.roughness=.47;stone.needsUpdate=true;
   const wood=texture(128,512,(c,w,h)=>{c.fillStyle='#b7a489';c.fillRect(0,0,w,h);for(let i=0;i<950;i++){const x=random()*w;c.strokeStyle=`rgba(40,25,14,${.03+random()*.14})`;c.beginPath();c.moveTo(x,0);for(let y=0;y<=h;y+=16)c.lineTo(x+Math.sin(y*.025+i)*(.8+random()*2),y);c.stroke();}});
   for(const m of [walnut,trim]){m.map=wood;m.bumpMap=wood;m.bumpScale=.012;m.needsUpdate=true;}
