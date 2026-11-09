@@ -10,6 +10,18 @@ export function createRenderStyles(composer,renderer){
  // Sanitize before tone mapping so they cannot turn into inverted display colours.
  const hdrGuard=new ShaderPass({uniforms:{tDiffuse:{value:null}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform sampler2D tDiffuse;varying vec2 vUv;void main(){vec3 c=texture2D(tDiffuse,vUv).rgb;c=vec3(c.r>=0.?min(c.r,32.):0.,c.g>=0.?min(c.g,32.):0.,c.b>=0.?min(c.b,32.):0.);gl_FragColor=vec4(c,1.);}`});hdrGuard.material.toneMapped=false;composer.addPass(hdrGuard);
  composer.addPass(new OutputPass());
+ // Independent night grading: disabled completely during the original daytime look.
+ const nightGrade=new ShaderPass({uniforms:{tDiffuse:{value:null},amount:{value:0}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+ uniform sampler2D tDiffuse;uniform float amount;varying vec2 vUv;
+ void main(){vec4 source=texture2D(tDiffuse,vUv);vec3 c=source.rgb;float l=dot(c,vec3(.2126,.7152,.0722));
+ float shade=1.-smoothstep(.12,.72,l);float middle=smoothstep(.06,.28,l)*(1.-smoothstep(.5,.85,l));
+ vec3 blue=c*vec3(.76,.90,1.085)+vec3(.0,.00525,.013)*shade;
+ vec3 graded=mix(c,blue,shade*.72);graded+=vec3(.0,.0125,.0115)*middle;
+ // Softer night contrast: gently lift black levels and compress bright lamps.
+ graded=graded*.86+vec3(.035);
+ gl_FragColor=vec4(clamp(mix(c,graded,amount),0.,1.),source.a);}`});
+ nightGrade.material.toneMapped=false;nightGrade.enabled=false;composer.addPass(nightGrade);
+
  const pass=new ShaderPass({uniforms:{tDiffuse:{value:null},resolution:{value:new Vector2(1,1)},pixelScale:{value:renderer.getPixelRatio()},time:{value:0},strength:{value:.4},grain:{value:.056},aberration:{value:1}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
  uniform sampler2D tDiffuse;uniform vec2 resolution;uniform float pixelScale,time,strength,grain,aberration;varying vec2 vUv;
  float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
@@ -52,5 +64,5 @@ export function createRenderStyles(composer,renderer){
  pass.setSize=(w,h)=>{pass.uniforms.resolution.value.set(w,h);pass.uniforms.pixelScale.value=renderer.getPixelRatio();};composer.addPass(pass);
  let preset='analog',requestedStrength=.4;
  const syncEnabled=()=>{pass.enabled=true;pass.uniforms.strength.value=preset==='original'?0:requestedStrength;};
- return {setPreset(value){preset=value==='original'?'original':'analog';syncEnabled();},setStrength(v){requestedStrength=Math.max(0,Math.min(1,Number(v)));syncEnabled();},setGrain(v){pass.uniforms.grain.value=Math.max(0,Math.min(.15,Number(v)));},setAberration(v){pass.uniforms.aberration.value=Math.max(0,Math.min(3,Number(v)));},update(t){pass.uniforms.time.value=Number.isFinite(t)?((t%128)+128)%128:0;},getPreset:()=>preset};
+ return {setNightTone(value){const amount=Math.max(0,Math.min(1,Number(value)||0));nightGrade.uniforms.amount.value=amount;nightGrade.enabled=amount>0;},setPreset(value){preset=value==='original'?'original':'analog';syncEnabled();},setStrength(v){requestedStrength=Math.max(0,Math.min(1,Number(v)));syncEnabled();},setGrain(v){pass.uniforms.grain.value=Math.max(0,Math.min(.15,Number(v)));},setAberration(v){pass.uniforms.aberration.value=Math.max(0,Math.min(3,Number(v)));},update(t){pass.uniforms.time.value=Number.isFinite(t)?((t%128)+128)%128:0;},getPreset:()=>preset};
 }

@@ -46,8 +46,9 @@ export function createBotanicalLibrary(){
 
  const glass=new THREE.MeshPhysicalMaterial({color:0x819582,roughness:.55,metalness:.05,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide});
  const sky=new THREE.ShaderMaterial({
+  uniforms:{nightMix:{value:0}},
   vertexShader:'varying vec3 vPosition;void main(){vPosition=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(vPosition,1.);}',
-  fragmentShader:'varying vec3 vPosition;void main(){float height=smoothstep(.8,9.0,vPosition.y);vec3 color=mix(vec3(.022,.062,.03),vec3(.93,.86,.69),height);float sun=exp(-length((vPosition.xy-vec2(4.8,9.1))*vec2(.25,.4)));color+=vec3(.62,.41,.17)*pow(sun,2.)*height;gl_FragColor=vec4(color,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}',
+  fragmentShader:'uniform float nightMix;varying vec3 vPosition;void main(){float height=smoothstep(.8,9.0,vPosition.y);vec3 color=mix(vec3(.022,.062,.03),vec3(.93,.86,.69),height);float sun=exp(-length((vPosition.xy-vec2(4.8,9.1))*vec2(.25,.4)));color+=vec3(.62,.41,.17)*pow(sun,2.)*height;vec3 night=mix(vec3(.006,.0175,.02775),vec3(.018,.03925,.09625),height);float moonDistance=length(vPosition.xy-vec2(-2.8,6.6));float moon=1.-smoothstep(.28,.36,moonDistance);float moonHalo=exp(-moonDistance*moonDistance*2.2);night+=vec3(2.1,2.4,2.9)*moon+vec3(.10,.15,.24)*moonHalo;color=mix(color,night,nightMix);gl_FragColor=vec4(color,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}',
  });box(30,20,.1,0,3,-13,sky);
  // Four glazed bays span 14m, separated by exactly three coarse interior mullions.
  for(let bay=0;bay<4;bay++){
@@ -192,5 +193,6 @@ export function createBotanicalLibrary(){
   const mesh=new THREE.Mesh(merged,material);mesh.name='书房静态合并布景';mesh.castShadow=objects.some(object=>object.castShadow);mesh.receiveShadow=objects.some(object=>object.receiveShadow);root.add(mesh);
   objects.forEach(object=>object.removeFromParent());
  }
+ root.userData.atmosphere={sky,daylight,sun};
  root.visible=false;return root;
 }

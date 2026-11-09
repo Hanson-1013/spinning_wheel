@@ -9,7 +9,8 @@ const selector=document.querySelector('#module'),status=document.querySelector('
 const mat=(color)=>new THREE.MeshStandardMaterial({color,roughness:.55});
 async function build(id){
  const group=new THREE.Group();const wood=mat(0x30261e),trim=mat(0x51412c),brass=new THREE.MeshStandardMaterial({color:0xa18449,metalness:.7,roughness:.35}),iron=mat(0x242b25);
- if(id==='art-corner'){group.add((await import('./library-art-corner.js')).createLibraryArtCorner());
+ if(id==='trunk'){group.add((await import('./travel-trunk.js')).createTravelTrunk());
+ }else if(id==='art-corner'){group.add((await import('./library-art-corner.js')).createLibraryArtCorner());
  }else if(id==='sofa'){group.add((await import('./library-armchair.js')).createLibraryArmchair());
  }else if(id==='server'){group.add((await import('./library-server.js')).createLibraryServer());
  }else if(id==='towers'){group.add((await import('./retro-towers.js')).createRetroTowers());
@@ -31,10 +32,12 @@ async function build(id){
  return group;
 }
 function dispose(object){const geometries=new Set(),materials=new Set(),textures=new Set();object.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){materials.add(m);for(const v of Object.values(m))if(v?.isTexture)textures.add(v);}});geometries.forEach(g=>g.dispose());textures.forEach(t=>t.dispose());materials.forEach(m=>m.dispose());}
-async function load(){const id=++ticket;status.textContent='正在加载模组…';if(current){scene.remove(current);dispose(current);current=null;}
+const trunkButton=document.querySelector('#trunk-open');let trunkOpen=false;
+trunkButton.onclick=()=>{trunkOpen=!trunkOpen;current?.children[0]?.userData.setOpen?.(trunkOpen);trunkButton.textContent=trunkOpen?'合上箱子':'打开箱子';trunkButton.setAttribute('aria-pressed',String(trunkOpen));};
+async function load(){trunkOpen=false;trunkButton.hidden=selector.value!=='trunk';trunkButton.textContent='打开箱子';trunkButton.setAttribute('aria-pressed','false');const id=++ticket;status.textContent='正在加载模组…';if(current){scene.remove(current);dispose(current);current=null;}
  try{const object=await build(selector.value);if(id!==ticket){dispose(object);return;}current=object;scene.add(object);object.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(object),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());object.position.sub(center);
  const radius=size.length()/2;
- fit=()=>{const distance=radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))/Math.min(1,camera.aspect)*1.12;camera.position.set(distance*.25,distance*.15,distance);camera.near=Math.max(.005,radius/100);camera.far=Math.max(100,distance*5);camera.updateProjectionMatrix();controls.target.set(0,0,0);controls.update();};fit();
+ fit=()=>{const distance=radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))/Math.min(1,camera.aspect)*1.12;camera.position.set(distance*(selector.value==='trunk'?.48:.25),distance*(selector.value==='trunk'?.36:.15),distance);camera.near=Math.max(.005,radius/100);camera.far=Math.max(100,distance*5);camera.updateProjectionMatrix();controls.target.set(0,0,0);controls.update();};fit();
  const url=new URL(location.href);url.searchParams.set('module',selector.value);history.replaceState(null,'',url);status.textContent='单指旋转 · 双指缩放/平移 · 仅加载当前模组';
  }catch(error){console.error(error);status.textContent='加载失败，请切换模组或刷新重试';}}
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}addEventListener('resize',resize);resize();

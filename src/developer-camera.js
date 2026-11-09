@@ -34,5 +34,5 @@ export function setupCameraTools(container,rig,canvas){
  }
  enabled.onchange=()=>{stopInspection();if(enabled.checked){state=rig.get();state.manual=true;rig.set(state);}else rig.reset();state=rig.get();refresh();};
  [...section.querySelectorAll('button')].find(button=>button!==inspectButton).onclick=()=>{stopInspection();rig.reset();state=rig.get();refresh();};refresh();
- return {update(){if(inspecting){orbit.update();state={...rig.get(),target:{x:orbit.target.x,y:orbit.target.y,z:orbit.target.z}};output.value=JSON.stringify({position:state.position,target:state.target,focalLength:Number(state.focalLength.toFixed(2))},null,2);}}};
+ return {setDefault(value){stopInspection();rig.setDefault(value);state=rig.get();refresh();},update(){if(inspecting){orbit.update();state={...rig.get(),target:{x:orbit.target.x,y:orbit.target.y,z:orbit.target.z}};output.value=JSON.stringify({position:state.position,target:state.target,focalLength:Number(state.focalLength.toFixed(2))},null,2);}}};
 }

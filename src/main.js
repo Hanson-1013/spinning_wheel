@@ -69,14 +69,14 @@ restoreSurface.addEventListener('click',e=>{e.stopPropagation();setInterfaceHidd
 const baseCameraPosition=new THREE.Vector3(),baseCameraTarget=new THREE.Vector3();
 const focusCenter=new THREE.Vector3(0,-2.035,0),cameraTarget=new THREE.Vector3();
 let stageOffset=0;
-let cameraPull=0,cameraRestartHold=false,manualCamera=null,inspectionSnapshot=null;
+let cameraPull=0,cameraRestartHold=false,manualCamera=null,inspectionSnapshot=null,defaultCamera=null;
 function updateCamera(elapsed){
  if(inspectionSnapshot){camera.updateMatrixWorld(true);return;}
  if(manualCamera){
   camera.clearViewOffset();camera.aspect=Math.max(1,host.clientWidth)/Math.max(1,host.clientHeight);
   camera.position.set(manualCamera.position.x,manualCamera.position.y,manualCamera.position.z);
   cameraTarget.set(manualCamera.target.x,manualCamera.target.y,manualCamera.target.z);
-  camera.setFocalLength(manualCamera.focalLength);camera.lookAt(cameraTarget);camera.updateMatrixWorld(true);return;
+  if(manualCamera.fov){camera.fov=manualCamera.fov;camera.updateProjectionMatrix();}else camera.setFocalLength(manualCamera.focalLength);camera.lookAt(cameraTarget);camera.updateMatrixWorld(true);return;
  }
  // Restart must not expose the old, hidden push-in value or move the camera.
  if(cameraRestartHold){
@@ -120,7 +120,8 @@ const cameraRig={
  },
  get(){return {manual:!!manualCamera,position:{x:camera.position.x,y:camera.position.y,z:camera.position.z},target:{x:cameraTarget.x,y:cameraTarget.y,z:cameraTarget.z},focalLength:camera.getFocalLength()};},
  set(value){manualCamera={position:{...value.position},target:{...value.target},focalLength:value.focalLength};updateCamera(0);},
- reset(){manualCamera=null;cameraPull=0;cameraRestartHold=false;resizeStage();}
+ setDefault(value){defaultCamera=value?structuredClone(value):null;this.reset();},
+ reset(){manualCamera=defaultCamera?structuredClone(defaultCamera):null;cameraPull=0;cameraRestartHold=false;resizeStage();}
 };
 let developerTools=null;
 if(document.body.dataset.page==='developer')import('./developer-tools.js').then(({setupDeveloperTools})=>developerTools=setupDeveloperTools({scene,wheel:spinningWheel.root,backdropObjects,canvas:renderer.domElement,renderer,water,cameraRig,performanceStage,renderStyles})).catch(console.error);
@@ -131,7 +132,7 @@ function animate(now){const elapsed=Math.max(0,(now-last)/1000),dt=Math.min(elap
 if(!paused){time+=dt;water.update(dt,time);spinningWheel.update(dt,elapsed);updateCamera(elapsed);gathering.update(time,spinningWheel.getState());developerTools?.update(time);}
 const state=spinningWheel.getState();
 setReplayVisible(state.complete&&state.after>=2.1&&gathering.isFinished());
-document.querySelector('#status').textContent=state.complete?'织光完成':Math.floor(state.progress*100)+'% / 织光进度';
+document.querySelector('#status').textContent=document.body.classList.contains('library-preview')?'箱中气候　'+(document.body.dataset.libraryTime==='night'?'夜晚':'清晨'):state.complete?'织光完成':Math.floor(state.progress*100)+'% / 织光进度';
 renderStyles?.update(now/1000);
 try{composer.render();}catch(error){showStartupError(error);return;}
 if(firstFrame){firstFrame=false;finishLoading();}

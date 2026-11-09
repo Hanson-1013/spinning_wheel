@@ -9,3 +9,18 @@
 .dev-camera-toggle{display:flex;align-items:center;gap:8px}.dev-camera-toggle input{width:auto;height:auto;margin:0}.dev-camera textarea{width:100%;margin-top:8px;background:#0b1519;color:#9fb5b1;border:1px solid #76909440;resize:vertical;font-size:10px;padding:8px}
 
 .dev-inspection-input{position:fixed;inset:0;z-index:1;touch-action:none;cursor:grab}.dev-inspection-input:active{cursor:grabbing}.dev-camera>button{margin-top:12px;width:100%}
+
+#dev-time,#dev-weather{width:100%;padding:10px;background:#17242a;color:#dbc898;border:1px solid #b89a6966;border-radius:4px;font:inherit}#dev-time:disabled,#dev-weather:disabled{opacity:.45}
+
+/* Match the public box composition while keeping the developer controls. */
+body.library-preview{font-family:Arial,sans-serif}
+.library-preview #app:after{background:radial-gradient(ellipse at 50% 46%,transparent 38%,rgba(3,8,7,.16) 72%,rgba(2,6,5,.52) 100%)}
+.library-preview .title{top:27%;left:6%;display:block}
+.library-preview h1{font-size:64px;font-weight:400;letter-spacing:10px;margin:22px 0;display:block}
+.library-preview h1 span{display:block;font-size:16px;letter-spacing:0;margin-top:12px}
+@media(max-width:700px){
+ .library-preview .title{top:calc(env(safe-area-inset-top,0px) + 72px);left:18px}
+ .library-preview h1{font-size:30px;letter-spacing:5px;margin:9px 0 0;display:flex;align-items:baseline;gap:12px}
+ .library-preview h1 span{font-size:11px;margin:0}
+ .library-preview .title p{display:none}
+}

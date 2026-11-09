@@ -1,3 +1,5 @@
+import {createLibraryAtmosphere} from './library-atmosphere.js';
+import {BOX_VIEW} from './box-camera-view.js';
 import * as THREE from 'three';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
@@ -6,6 +8,24 @@ import {createBotanicalLibrary} from './botanical-library.js';
 import {createRenderStyles} from './render-styles.js';
 
 const loading=document.querySelector('#loading');
+const stopLoadingIcon=()=>loading.dispatchEvent(new Event('box-loading-stop'));
+const loadingStarted=performance.now();let assetsReady=true,loadingFinished=false;
+THREE.DefaultLoadingManager.onStart=()=>{assetsReady=false;};
+THREE.DefaultLoadingManager.onLoad=()=>{assetsReady=true;};
+function finishBoxLoading(now){
+ if(loadingFinished||!assetsReady||now-loadingStarted<900||loading.dataset.iconOpened!=='true')return;
+ loadingFinished=true;requestAnimationFrame(()=>{loading.classList.add('is-ready');setTimeout(()=>{stopLoadingIcon();loading.remove();},700);});
+}
+
+const timeButton=document.querySelector('#box-time');
+const overlay=document.querySelector('.box-overlay'),hideButton=document.querySelector('#box-toggle-ui'),restoreButton=document.querySelector('#box-restore-ui');
+function setTextHidden(hidden){
+ overlay.classList.toggle('is-hidden',hidden);overlay.inert=hidden;overlay.setAttribute('aria-hidden',String(hidden));restoreButton.hidden=!hidden;
+ (hidden?restoreButton:hideButton).focus({preventScroll:true});
+}
+hideButton.onclick=()=>setTextHidden(true);
+restoreButton.onclick=e=>{e.stopPropagation();setTextHidden(false);};
+
 try {
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
@@ -14,11 +34,21 @@ try {
  const library=createBotanicalLibrary();library.visible=true;scene.add(library);library.userData.indoorMist?.setVisible(true);library.userData.indoorMist?.setDensity(16);
  const camera=new THREE.PerspectiveCamera(43,1,.1,100),origin=new THREE.Vector3(0,1.3,8);
  const basePitch=Math.atan2(.45-1.3,11.8);
- const defaults={yaw:10,pitch:5,side:-1.5,travel:-.43,fov:60},state={...defaults};
+ const defaults={...BOX_VIEW},state={...defaults};
  // Movement bounds are relative to the approved starting camera position.
  origin.set(defaults.side,.5,8-defaults.travel);
  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(1,1),.7,.65,.72));
  const film=createRenderStyles(composer,renderer);film.setStrength(.4);film.setGrain(.056);film.setAberration(1);
+ const atmosphere=createLibraryAtmosphere(library,scene,renderer,film);
+ let isNight=false;
+ timeButton.onclick=()=>{
+  isNight=!isNight;atmosphere.setTime(isNight?'night':'morning');
+  timeButton.textContent=isNight?'夜晚':'清晨';
+  timeButton.setAttribute('aria-pressed',String(isNight));
+  timeButton.setAttribute('aria-label',isNight?'箱中时间：夜晚，点击切换清晨':'箱中时间：清晨，点击切换夜晚');
+ };
+ timeButton.disabled=false;
+
  function apply(){
   state.yaw=THREE.MathUtils.clamp(state.yaw,defaults.yaw-30,defaults.yaw+30);
   state.pitch=THREE.MathUtils.clamp(state.pitch,defaults.pitch-30,defaults.pitch+30);
@@ -35,7 +65,7 @@ try {
  renderer.domElement.onpointermove=e=>{if(pointer?.id!==e.pointerId)return;state.yaw-=(e.clientX-pointer.x)*.1;state.pitch-=(e.clientY-pointer.y)*.1;pointer.x=e.clientX;pointer.y=e.clientY;apply();};
  const release=e=>{if(pointer?.id===e.pointerId)pointer=null;};renderer.domElement.onpointerup=release;renderer.domElement.onpointercancel=release;renderer.domElement.onlostpointercapture=release;
  const keys=new Set(),allowed=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'];
- window.addEventListener('keydown',e=>{if(e.target.matches('input,button,summary')||!allowed.includes(e.key.toLowerCase()))return;e.preventDefault();keys.add(e.key.toLowerCase());});
+ window.addEventListener('keydown',e=>{if(e.target.matches('input,button,summary,a')||!allowed.includes(e.key.toLowerCase()))return;e.preventDefault();keys.add(e.key.toLowerCase());});
  window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());
  function resize(){renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
  window.addEventListener('resize',resize);resize();apply();
@@ -44,6 +74,6 @@ try {
   const horizontal=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
   const forward=Number(keys.has('w')||keys.has('arrowup'))-Number(keys.has('s')||keys.has('arrowdown'));
   if(horizontal||forward){state.side+=horizontal*dt;state.travel+=forward*dt;apply();}
-  library.userData.update?.(now/1000);film.update(now/1000);composer.render();loading.hidden=true;loading.style.display='none';
+  library.userData.update?.(now/1000);film.update(now/1000);composer.render();finishBoxLoading(now);
  });
-} catch(error){loading.textContent='场景加载失败，请刷新重试。';console.error(error);}
+} catch(error){stopLoadingIcon();loading.textContent='场景加载失败，请刷新重试。';console.error(error);}

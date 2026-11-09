@@ -2,11 +2,12 @@ import {defineConfig} from 'vite';
 import {fileURLToPath} from 'node:url';
 const testRoute=server=>{server.middlewares.use((req,res,next)=>{
  if(req.url?.split('?')[0]==='/test/modules')req.url='/test/modules/index.html'+(req.url.includes('?')?'?'+req.url.split('?').slice(1).join('?'):'');
+ if(['/wheel','/wheel/'].includes(req.url?.split('?')[0]))req.url='/wheel/index.html'+(req.url.includes('?')?'?'+req.url.split('?').slice(1).join('?'):'');
  if(req.url?.split('?')[0]==='/box')req.url='/box/index.html'+(req.url.includes('?')?'?'+req.url.split('?').slice(1).join('?'):'');
  if(req.url?.split('?')[0]==='/test')req.url='/test/index.html'+(req.url.includes('?')?'?'+req.url.split('?').slice(1).join('?'):'');
  next();
 });};
 export default defineConfig({
  plugins:[{name:'developer-test-route',configureServer:testRoute,configurePreviewServer:testRoute}],
- build:{rollupOptions:{input:{box:fileURLToPath(new URL('./box/index.html',import.meta.url)),modules:fileURLToPath(new URL('./test/modules/index.html',import.meta.url)),main:fileURLToPath(new URL('./index.html',import.meta.url)),test:fileURLToPath(new URL('./test/index.html',import.meta.url))}}}
+ build:{rollupOptions:{input:{wheel:fileURLToPath(new URL('./wheel/index.html',import.meta.url)),box:fileURLToPath(new URL('./box/index.html',import.meta.url)),modules:fileURLToPath(new URL('./test/modules/index.html',import.meta.url)),main:fileURLToPath(new URL('./index.html',import.meta.url)),test:fileURLToPath(new URL('./test/index.html',import.meta.url))}}}
 });

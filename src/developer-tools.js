@@ -3,6 +3,8 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import './developer.css';
 import {setupCameraTools} from './developer-camera.js';
 import {createBotanicalLibrary} from './botanical-library.js';
+import {boxCameraPreset} from './box-camera-view.js';
+import {createLibraryAtmosphere} from './library-atmosphere.js';
 
 export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer,water,cameraRig,performanceStage,renderStyles}){
  const panel=document.createElement('section');panel.className='developer-panel';panel.setAttribute('aria-label','素材试验台');
@@ -13,6 +15,10 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
  <div class="dev-actions"><button id="dev-show-all">显示全部素材</button><button id="dev-hide-all">隐藏全部素材</button></div>
  <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option></select><p>植物书房采用三维建模，可与纺车、水面及导入素材共同呈现。</p>
+ <h2>时间 / 天气</h2>
+ <label for="dev-time">时间</label><select id="dev-time"><option value="morning">清晨 · 晨光格窗</option><option value="night">夜晚 · 月光暖灯</option></select>
+ <label for="dev-weather">天气</label><select id="dev-weather"><option value="mist">薄雾</option><option value="clear">晴朗</option></select><p>夜晚单独调整窗外天空、月光与室内暖灯；可切回清晨对照。</p>
+ <div class="dev-row"><span>吊灯</span><button id="dev-pendant-toggle" type="button" aria-pressed="false">打开吊灯</button></div>
  <h2>复古模拟胶片</h2><label for="dev-render-style">画面效果</label><select id="dev-render-style"><option value="analog">复古模拟胶片 · 参考图风格</option><option value="original">原画对照 · 关闭滤镜</option></select>
  <label for="dev-style-strength">滤镜强度 <output id="dev-style-strength-value">40%</output></label><input id="dev-style-strength" type="range" min="0" max="100" value="40">
  <label for="dev-film-grain">胶片颗粒 <output id="dev-film-grain-value">40%</output></label><input id="dev-film-grain" type="range" min="0" max="100" value="40">
@@ -25,24 +31,34 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  const status=text=>find('dev-status').textContent=text;
  const cameraTools=setupCameraTools(find('dev-camera'),cameraRig,canvas);
  const originalBackground=scene.background,originalFog=scene.fog,originalShadows=renderer.shadowMap.enabled;
- let librarySet=null,mistVisible=true;
- function applyMist(){const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible);api.setDensity(find('dev-mist-density').value);}}
+ let librarySet=null,atmosphere=null,mistVisible=true,pendantsOn=false;
+ function applyMist(){atmosphere?.setWeather(find('dev-weather').value);const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible&&find('dev-weather').value!=='clear');api.setDensity(find('dev-mist-density').value);}}
  find('dev-mist-toggle').onclick=()=>{mistVisible=!mistVisible;find('dev-mist-toggle').textContent=mistVisible?'隐藏雾气':'显示雾气';find('dev-mist-toggle').setAttribute('aria-pressed',String(mistVisible));applyMist();};
  find('dev-mist-density').oninput=()=>{find('dev-mist-value').textContent=find('dev-mist-density').value+'%';applyMist();};
+ find('dev-time').onchange=()=>{document.body.dataset.libraryTime=find('dev-time').value;atmosphere?.setTime(find('dev-time').value);status(find('dev-time').value==='night'?'已切换夜晚 · 月光暖灯':'已切换清晨 · 晨光格窗');};
+ find('dev-weather').onchange=applyMist;
+ find('dev-pendant-toggle').onclick=()=>{pendantsOn=!pendantsOn;atmosphere?.setPendantLights(pendantsOn);find('dev-pendant-toggle').textContent=pendantsOn?'关闭吊灯':'打开吊灯';find('dev-pendant-toggle').setAttribute('aria-pressed',String(pendantsOn));};
  find('dev-render-style').onchange=e=>renderStyles?.setPreset(e.target.value);
  find('dev-style-strength').oninput=e=>{find('dev-style-strength-value').textContent=e.target.value+'%';renderStyles?.setStrength(e.target.value/100);};
  find('dev-film-grain').oninput=e=>{find('dev-film-grain-value').textContent=e.target.value+'%';renderStyles?.setGrain(e.target.value*.0014);};
  find('dev-film-fringe').oninput=e=>{find('dev-film-fringe-value').textContent=e.target.value;renderStyles?.setAberration(e.target.value);};
+ const title=document.querySelector('.title'),originalTitle=title.innerHTML;
+ const libraryTitle='<div class="eyebrow">In The Box — Out Of Rain</div><h1>箱中客厅<span>A mysterious box.</span></h1><p>箱中天地 雨外桃源</p>';
  const originalVisibility=backdropObjects.map(object=>object.visible);
  find('dev-backdrop').onchange=e=>{
   const useLibrary=e.target.value==='library';
   cameraRig.setStageOffset(useLibrary?1.2:0);
-  if(useLibrary&&!librarySet){librarySet=createBotanicalLibrary();scene.add(librarySet);}
+  document.body.classList.toggle('library-preview',useLibrary);
+  title.innerHTML=useLibrary?libraryTitle:originalTitle;
+  cameraTools.setDefault(useLibrary?boxCameraPreset():null);
+  if(useLibrary&&!librarySet){librarySet=createBotanicalLibrary();scene.add(librarySet);atmosphere=createLibraryAtmosphere(librarySet,scene,renderer,renderStyles);atmosphere.setPendantLights(pendantsOn);}
   if(librarySet)librarySet.visible=useLibrary;applyMist();
   renderer.shadowMap.enabled=useLibrary||originalShadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   scene.background=useLibrary?new THREE.Color(0xbacac2):originalBackground;
   scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):originalFog;
   backdropObjects.forEach((object,i)=>object.visible=useLibrary?false:originalVisibility[i]);
+  atmosphere?.setEnabled(useLibrary);
+  find('dev-time').disabled=find('dev-weather').disabled=find('dev-pendant-toggle').disabled=!useLibrary;
   status(useLibrary?'已切换三维植物书房':'已切换原布景');
  };
 
