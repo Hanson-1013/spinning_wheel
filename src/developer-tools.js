@@ -3,6 +3,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import './developer.css';
 import {setupCameraTools} from './developer-camera.js';
 import {createBotanicalLibrary} from './botanical-library.js';
+import {createMarshRuins} from './marsh-ruins.js';
 import {boxCameraPreset} from './box-camera-view.js';
 import {createLibraryAtmosphere} from './library-atmosphere.js';
 
@@ -14,7 +15,7 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  <label class="dev-upload">添加素材<input id="dev-files" type="file" multiple accept=".glb,.png,.jpg,.jpeg,.webp,.mp3,.wav,.ogg,.m4a"></label>
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
  <div class="dev-actions"><button id="dev-show-all">显示全部素材</button><button id="dev-hide-all">隐藏全部素材</button></div>
- <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option></select><p>植物书房采用三维建模，可与纺车、水面及导入素材共同呈现。</p>
+ <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option><option value="marsh">雾中遗迹 · 芦苇水泽</option></select><p>植物书房与雾中遗迹均为三维布景，可切换查看。水泽布景使用独立水面与倒影。</p>
  <h2>时间 / 天气</h2>
  <label for="dev-time">时间</label><select id="dev-time"><option value="morning">清晨 · 晨光格窗</option><option value="night">夜晚 · 月光暖灯</option></select>
  <label for="dev-weather">天气</label><select id="dev-weather"><option value="mist">薄雾</option><option value="clear">晴朗</option></select><p>夜晚单独调整窗外天空、月光与室内暖灯；可切回清晨对照。</p>
@@ -31,8 +32,9 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  const status=text=>find('dev-status').textContent=text;
  const cameraTools=setupCameraTools(find('dev-camera'),cameraRig,canvas);
  const originalBackground=scene.background,originalFog=scene.fog,originalShadows=renderer.shadowMap.enabled;
- let librarySet=null,atmosphere=null,mistVisible=true,pendantsOn=false;
- function applyMist(){atmosphere?.setWeather(find('dev-weather').value);const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible&&find('dev-weather').value!=='clear');api.setDensity(find('dev-mist-density').value);}}
+ let librarySet=null,marshSet=null,atmosphere=null,mistVisible=true,pendantsOn=false,stageToggle=null;
+ const originalWheelPosition=wheel.position.clone(),originalExposure=renderer.toneMappingExposure;
+ function applyMist(){marshSet?.userData.setMistDensity(find('dev-mist-density').value);marshSet?.userData.setMist(mistVisible&&find('dev-weather').value!=='clear');atmosphere?.setWeather(find('dev-weather').value);const api=librarySet?.userData.indoorMist;if(api){api.setVisible(mistVisible&&find('dev-weather').value!=='clear');api.setDensity(find('dev-mist-density').value);}}
  find('dev-mist-toggle').onclick=()=>{mistVisible=!mistVisible;find('dev-mist-toggle').textContent=mistVisible?'隐藏雾气':'显示雾气';find('dev-mist-toggle').setAttribute('aria-pressed',String(mistVisible));applyMist();};
  find('dev-mist-density').oninput=()=>{find('dev-mist-value').textContent=find('dev-mist-density').value+'%';applyMist();};
  find('dev-time').onchange=()=>{document.body.dataset.libraryTime=find('dev-time').value;atmosphere?.setTime(find('dev-time').value);status(find('dev-time').value==='night'?'已切换夜晚 · 月光暖灯':'已切换清晨 · 晨光格窗');};
@@ -46,33 +48,43 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  const libraryTitle='<div class="eyebrow">In The Box — Out Of Rain</div><h1>箱中客厅<span>A mysterious box.</span></h1><p>箱中天地 雨外桃源</p>';
  const originalVisibility=backdropObjects.map(object=>object.visible);
  find('dev-backdrop').onchange=e=>{
-  const useLibrary=e.target.value==='library';
+  const useLibrary=e.target.value==='library',useMarsh=e.target.value==='marsh';
   cameraRig.setStageOffset(useLibrary?1.2:0);
+  wheel.position.copy(originalWheelPosition);if(useMarsh)wheel.position.x+=1.15;
   document.body.classList.toggle('library-preview',useLibrary);
-  title.innerHTML=useLibrary?libraryTitle:originalTitle;
-  cameraTools.setDefault(useLibrary?boxCameraPreset():null);
+  document.body.classList.toggle('marsh-preview',useMarsh);
+  title.innerHTML=useLibrary?libraryTitle:useMarsh?'<div class="eyebrow">WHERE THE GOLDEN REEDS WHISPER</div><h1>雾中遗迹<span>A wheel among the reeds.</span></h1><p>芦苇 水泽 与旧日回声</p>':originalTitle;
+  cameraTools.setDefault(useLibrary?boxCameraPreset():useMarsh?{position:{x:0,y:.8,z:11.8},target:{x:-.3,y:-.15,z:-9},fov:48}:null);
   if(useLibrary&&!librarySet){librarySet=createBotanicalLibrary();scene.add(librarySet);atmosphere=createLibraryAtmosphere(librarySet,scene,renderer,renderStyles);atmosphere.setPendantLights(pendantsOn);}
-  if(librarySet)librarySet.visible=useLibrary;applyMist();
-  renderer.shadowMap.enabled=useLibrary||originalShadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  scene.background=useLibrary?new THREE.Color(0xbacac2):originalBackground;
-  scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):originalFog;
-  backdropObjects.forEach((object,i)=>object.visible=useLibrary?false:originalVisibility[i]);
+  if(useMarsh&&!marshSet){marshSet=createMarshRuins();scene.add(marshSet);}
+  if(librarySet)librarySet.visible=useLibrary;
+  if(marshSet)marshSet.visible=useMarsh;
+  applyMist();
+  renderer.shadowMap.enabled=useLibrary||useMarsh||originalShadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  scene.background=useLibrary?new THREE.Color(0xbacac2):useMarsh?new THREE.Color(0x879581):originalBackground;
+  scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):useMarsh?new THREE.FogExp2(0x879581,.024):originalFog;
+  backdropObjects.forEach((object,i)=>object.visible=useLibrary||useMarsh?false:originalVisibility[i]);
   atmosphere?.setEnabled(useLibrary);
-  find('dev-time').disabled=find('dev-weather').disabled=find('dev-pendant-toggle').disabled=!useLibrary;
-  status(useLibrary?'已切换三维植物书房':'已切换原布景');
+  if(!useLibrary){renderStyles?.setNightTone(0);renderer.toneMappingExposure=useMarsh?1.12:originalExposure;}
+  stageToggle?.(useMarsh);
+  find('dev-time').disabled=find('dev-pendant-toggle').disabled=!useLibrary;
+  find('dev-weather').disabled=!(useLibrary||useMarsh);
+  const url=new URL(location.href);url.searchParams.set('backdrop',e.target.value);history.replaceState(null,'',url);
+  status(useLibrary?'已切换三维植物书房':useMarsh?'已切换雾中遗迹 · 芦苇水泽':'已切换原布景');
  };
 
  const toggleRow=(label,objects)=>{
   for(const object of objects)object.visible=false;
   const row=document.createElement('div');row.className='dev-row';const name=document.createElement('span');name.textContent=label;
   const button=document.createElement('button');button.textContent='显示';button.setAttribute('aria-pressed','false');
-  button.onclick=()=>{const visible=button.getAttribute('aria-pressed')!=='true';for(const o of objects)o.visible=visible;button.setAttribute('aria-pressed',String(visible));button.textContent=visible?'隐藏':'显示';};
-  row.append(name,button);find('dev-builtins').appendChild(row);
+  const set=visible=>{const marsh=find('dev-backdrop').value==='marsh';for(const object of objects)object.visible=visible&&(!marsh||object===wheel);button.setAttribute('aria-pressed',String(visible));button.textContent=visible?'隐藏':'显示';};
+  button.onclick=()=>set(button.getAttribute('aria-pressed')!=='true');
+  row.append(name,button);find('dev-builtins').appendChild(row);return set;
  };
  // Use a parent group so the animation may continue updating each particle layer internally.
  const particles=new THREE.Group();performanceStage.add(particles);
  for(const object of [...performanceStage.children])if(object.isPoints)particles.add(object);
- toggleRow('纺车四件套',[wheel,water.poolGroup,water.rainGroup,particles]);
+ stageToggle=toggleRow('纺车四件套',[wheel,water.poolGroup,water.rainGroup,particles]);
  find('dev-collapse').onclick=e=>{const hidden=find('dev-content').hidden=!find('dev-content').hidden;e.target.textContent=hidden?'展开':'收起';e.target.setAttribute('aria-expanded',String(!hidden));};
  function setVisible(asset,visible){asset.visible=visible;if(asset.object)asset.object.visible=visible;if(asset.audio&&!visible)asset.audio.pause();asset.toggle.textContent=visible?'隐藏':'显示';asset.toggle.setAttribute('aria-pressed',String(visible));}
  const dispose=object=>object?.traverse(o=>{o.geometry?.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])if(material){for(const value of Object.values(material))if(value?.isTexture)value.dispose();material.dispose();}});
@@ -111,6 +123,7 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
   }
  };
  find('dev-show-all').onclick=()=>assets.forEach(a=>setVisible(a,true));find('dev-hide-all').onclick=()=>assets.forEach(a=>setVisible(a,false));
- find('dev-backdrop').value='library';find('dev-backdrop').dispatchEvent(new Event('change'));
- return {update(time){cameraTools.update();if(librarySet?.visible)librarySet.userData.update?.(time);}};
+ const requested=new URLSearchParams(location.search).get('backdrop');
+ find('dev-backdrop').value=['original','library','marsh'].includes(requested)?requested:'marsh';find('dev-backdrop').dispatchEvent(new Event('change'));
+ return {update(time){cameraTools.update();if(librarySet?.visible)librarySet.userData.update?.(time);if(marshSet?.visible)marshSet.userData.update?.(time);}};
 }
