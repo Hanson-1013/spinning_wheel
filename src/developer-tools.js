@@ -15,7 +15,7 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  <label class="dev-upload">添加素材<input id="dev-files" type="file" multiple accept=".glb,.png,.jpg,.jpeg,.webp,.mp3,.wav,.ogg,.m4a"></label>
  <p id="dev-status" role="status" aria-live="polite">选择素材开始试用</p>
  <div class="dev-actions"><button id="dev-show-all">显示全部素材</button><button id="dev-hide-all">隐藏全部素材</button></div>
- <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option><option value="marsh">雾中遗迹 · 芦苇水泽</option></select><p>植物书房与雾中遗迹均为三维布景，可切换查看。水泽布景使用独立水面与倒影。</p>
+ <h2>布景</h2><label for="dev-backdrop">选择背景</label><select id="dev-backdrop"><option value="original">原布景 · 暗色水庭</option><option value="library">植物书房 · 晨光格窗</option><option value="marsh">最初的涟漪 · 芦苇水泽</option></select><p>植物书房与最初的涟漪均为三维布景，可切换查看。水泽布景使用独立水面与倒影。</p>
  <h2>时间 / 天气</h2>
  <label for="dev-time">时间</label><select id="dev-time"><option value="morning">清晨 · 晨光格窗</option><option value="night">夜晚 · 月光暖灯</option></select>
  <label for="dev-weather">天气</label><select id="dev-weather"><option value="mist">薄雾</option><option value="clear">晴朗</option></select><p>夜晚单独调整窗外天空、月光与室内暖灯；可切回清晨对照。</p>
@@ -50,11 +50,12 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
  find('dev-backdrop').onchange=e=>{
   const useLibrary=e.target.value==='library',useMarsh=e.target.value==='marsh';
   cameraRig.setStageOffset(useLibrary?1.2:0);
-  wheel.position.copy(originalWheelPosition);if(useMarsh)wheel.position.x+=1.15;
+  cameraRig.camera.far=useMarsh?300:100;cameraRig.camera.updateProjectionMatrix();
+  wheel.position.copy(originalWheelPosition);if(useMarsh)wheel.position.x-=.52;
   document.body.classList.toggle('library-preview',useLibrary);
   document.body.classList.toggle('marsh-preview',useMarsh);
-  title.innerHTML=useLibrary?libraryTitle:useMarsh?'<div class="eyebrow">WHERE THE GOLDEN REEDS WHISPER</div><h1>雾中遗迹<span>A wheel among the reeds.</span></h1><p>芦苇 水泽 与旧日回声</p>':originalTitle;
-  cameraTools.setDefault(useLibrary?boxCameraPreset():useMarsh?{position:{x:0,y:.8,z:11.8},target:{x:-.3,y:-.15,z:-9},fov:48}:null);
+  title.innerHTML=useLibrary?libraryTitle:useMarsh?'<div class="eyebrow">WHERE THE GOLDEN REEDS WHISPER</div><h1>最初的涟漪<span>A wheel among the reeds.</span></h1><p>薄雾弥漫之地，偶然或必然的相遇。</p>':originalTitle;
+  cameraTools.setDefault(useLibrary?boxCameraPreset():useMarsh?{position:{x:-.4,y:-.35,z:11.5},target:{x:0,y:-.95,z:-11},focalLength:21.5}:null);
   if(useLibrary&&!librarySet){librarySet=createBotanicalLibrary();scene.add(librarySet);atmosphere=createLibraryAtmosphere(librarySet,scene,renderer,renderStyles);atmosphere.setPendantLights(pendantsOn);}
   if(useMarsh&&!marshSet){marshSet=createMarshRuins();scene.add(marshSet);}
   if(librarySet)librarySet.visible=useLibrary;
@@ -62,7 +63,7 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
   applyMist();
   renderer.shadowMap.enabled=useLibrary||useMarsh||originalShadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   scene.background=useLibrary?new THREE.Color(0xbacac2):useMarsh?new THREE.Color(0x879581):originalBackground;
-  scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):useMarsh?new THREE.FogExp2(0x879581,.024):originalFog;
+  scene.fog=useLibrary?new THREE.FogExp2(0xb6c8bd,.007):useMarsh?new THREE.FogExp2(0x737b75,.021):originalFog;
   backdropObjects.forEach((object,i)=>object.visible=useLibrary||useMarsh?false:originalVisibility[i]);
   atmosphere?.setEnabled(useLibrary);
   if(!useLibrary){renderStyles?.setNightTone(0);renderer.toneMappingExposure=useMarsh?1.12:originalExposure;}
@@ -70,7 +71,7 @@ export function setupDeveloperTools({scene,wheel,backdropObjects,canvas,renderer
   find('dev-time').disabled=find('dev-pendant-toggle').disabled=!useLibrary;
   find('dev-weather').disabled=!(useLibrary||useMarsh);
   const url=new URL(location.href);url.searchParams.set('backdrop',e.target.value);history.replaceState(null,'',url);
-  status(useLibrary?'已切换三维植物书房':useMarsh?'已切换雾中遗迹 · 芦苇水泽':'已切换原布景');
+  status(useLibrary?'已切换三维植物书房':useMarsh?'已切换最初的涟漪 · 芦苇水泽':'已切换原布景');
  };
 
  const toggleRow=(label,objects)=>{

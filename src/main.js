@@ -78,9 +78,16 @@ function updateCamera(elapsed){
   cameraTarget.set(manualCamera.target.x,manualCamera.target.y,manualCamera.target.z);
   if(manualCamera.fov){camera.fov=manualCamera.fov;camera.updateProjectionMatrix();}else camera.setFocalLength(manualCamera.focalLength);camera.lookAt(cameraTarget);camera.updateMatrixWorld(true);return;
  }
+ // Scene presets provide the resting composition while retaining the ritual push-in.
+ if(defaultCamera){
+  camera.clearViewOffset();camera.aspect=Math.max(1,host.clientWidth)/Math.max(1,host.clientHeight);
+  baseCameraPosition.set(defaultCamera.position.x,defaultCamera.position.y,defaultCamera.position.z);
+  baseCameraTarget.set(defaultCamera.target.x,defaultCamera.target.y,defaultCamera.target.z);
+  if(defaultCamera.fov){camera.fov=defaultCamera.fov;camera.updateProjectionMatrix();}else camera.setFocalLength(defaultCamera.focalLength);
+ }
  // Restart must not expose the old, hidden push-in value or move the camera.
  if(cameraRestartHold){
-   if(!spinningWheel.isInteracting())return;
+   if(!spinningWheel.isInteracting()&&!defaultCamera)return;
    cameraRestartHold=false;
  }
  const state=spinningWheel.getState();
@@ -91,10 +98,11 @@ function updateCamera(elapsed){
  if(fading&&state.after>=2.1)cameraPull=0;
  else cameraPull+=(desired-cameraPull)*(1-Math.exp(-elapsed*4));
  const visiblePull=cameraPull*returnFactor;
+ const pullFocus=defaultCamera?spinningWheel.getCenter(new THREE.Vector3()):focusCenter;
  const travel=(innerWidth<=700?.18:.25)*visiblePull;
- camera.position.copy(baseCameraPosition).lerp(focusCenter,travel);
- cameraTarget.copy(baseCameraTarget).lerp(focusCenter,visiblePull*.55);
- camera.position.z+=stageOffset;cameraTarget.z+=stageOffset;
+ camera.position.copy(baseCameraPosition).lerp(pullFocus,travel);
+ cameraTarget.copy(baseCameraTarget).lerp(pullFocus,visiblePull*.55);
+ if(!defaultCamera){camera.position.z+=stageOffset;cameraTarget.z+=stageOffset;}
  camera.lookAt(cameraTarget);camera.updateMatrixWorld(true);
 }
 const mobileFrame=document.createElement('div');mobileFrame.className='mobile-camera-frame';mobileFrame.setAttribute('aria-hidden','true');document.querySelector('#app').appendChild(mobileFrame);
@@ -121,7 +129,7 @@ const cameraRig={
  get(){return {manual:!!manualCamera,position:{x:camera.position.x,y:camera.position.y,z:camera.position.z},target:{x:cameraTarget.x,y:cameraTarget.y,z:cameraTarget.z},focalLength:camera.getFocalLength()};},
  set(value){manualCamera={position:{...value.position},target:{...value.target},focalLength:value.focalLength};updateCamera(0);},
  setDefault(value){defaultCamera=value?structuredClone(value):null;this.reset();},
- reset(){manualCamera=defaultCamera?structuredClone(defaultCamera):null;cameraPull=0;cameraRestartHold=false;resizeStage();}
+ reset(){manualCamera=null;cameraPull=0;cameraRestartHold=false;resizeStage();}
 };
 let developerTools=null;
 if(document.body.dataset.page==='developer')import('./developer-tools.js').then(({setupDeveloperTools})=>developerTools=setupDeveloperTools({scene,wheel:spinningWheel.root,backdropObjects,canvas:renderer.domElement,renderer,water,cameraRig,performanceStage,renderStyles})).catch(console.error);

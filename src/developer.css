@@ -24,3 +24,6 @@ body.library-preview{font-family:Arial,sans-serif}
  .library-preview h1 span{font-size:11px;margin:0}
  .library-preview .title p{display:none}
 }
+
+/* Shade only the foreground water with a bottom gradient. */
+.marsh-preview #app:after{background:linear-gradient(to bottom,transparent 52%,rgba(0,0,0,.08) 64%,rgba(0,0,0,.42) 81%,rgba(0,0,0,.82) 100%)}
